@@ -1,5 +1,5 @@
 import axios from "axios";
-import { baseURL } from "~/intercepter/Intercepter";
+import { baseURL } from "~/interceptor/Interceptor";
 import { Account } from "~/types/interface/Account";
 import { RegisterUser } from "~/types/interface/RegisterUser";
 

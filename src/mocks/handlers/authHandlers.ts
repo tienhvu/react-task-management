@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import { User } from "~/types/interface/User";
 import { http, HttpResponse } from "msw";
-import { baseURL } from "~/intercepter/Intercepter";
+import { baseURL } from "~/interceptor/Interceptor";
 import { ErrorResponse } from "~/types/interface/ErrorResponse";
 import { v4 as uuidv4 } from "uuid";
 
