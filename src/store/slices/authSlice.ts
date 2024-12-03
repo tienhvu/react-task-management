@@ -1,26 +1,9 @@
-// authSlice.ts
-
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import authApi from "~/api/authApi";
 import { Account } from "~/types/interface/Account";
-
-interface User {
-	id: number;
-	username: string;
-	email: string;
-	firstName: string;
-	lastName: string;
-	gender: string;
-	image: string;
-}
-
-interface AuthState {
-	user: User | null;
-	accessToken: string | null;
-	refreshToken: string | null;
-	error: string | null;
-	loading: boolean;
-}
+import { AuthState } from "~/types/interface/AuthState";
+import { RegisterUser } from "~/types/interface/RegisterUser";
+import { User } from "~/types/interface/User";
 
 const initialState: AuthState = {
 	user: null,
@@ -31,20 +14,41 @@ const initialState: AuthState = {
 };
 
 export const login = createAsyncThunk<
-	{ token: string; refreshToken: string; tokenExpires: number; user: User },
+	{
+		accessToken: string;
+		refreshToken: string;
+		tokenExpires: number;
+		user: User;
+	},
 	Account,
 	{ rejectValue: string }
 >("auth/login", async (account: Account, { rejectWithValue }) => {
 	try {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 		const response = await authApi.postLogin(account);
+		console.log(response.data);
 		return response.data;
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			return rejectWithValue(error.message || "Đăng nhập thất bại");
-		}
-		return rejectWithValue("Đăng nhập thất bại");
+		const err = error as { response?: { data?: { message?: string } } };
+		const errorMessage =
+			err.response?.data?.message || "An unknown error occurred";
+		return rejectWithValue(errorMessage);
 	}
 });
+
+export const register = createAsyncThunk(
+	"auth/register",
+	async (userData: RegisterUser, { rejectWithValue }) => {
+		try {
+			const response = await authApi.postRegister(userData);
+			return response.data;
+		} catch (error: unknown) {
+			const err = error as { response?: { data?: { message?: string } } };
+			const errorMessage = err.response?.data?.message || "Đăng ký thất bại";
+			return rejectWithValue(errorMessage);
+		}
+	},
+);
 
 const authSlice = createSlice({
 	name: "auth",
@@ -80,6 +84,9 @@ const authSlice = createSlice({
 				state.user = authData.user;
 			}
 		},
+		clearError: (state) => {
+			state.error = null;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -88,8 +95,8 @@ const authSlice = createSlice({
 				state.error = null;
 			})
 			.addCase(login.fulfilled, (state, action) => {
-				const { token, refreshToken, user } = action.payload;
-				state.accessToken = token;
+				const { accessToken, refreshToken, user } = action.payload;
+				state.accessToken = accessToken;
 				state.refreshToken = refreshToken;
 				state.user = user;
 				state.loading = false;
@@ -97,7 +104,7 @@ const authSlice = createSlice({
 				localStorage.setItem(
 					"auth",
 					JSON.stringify({
-						accessToken: token,
+						accessToken: accessToken,
 						refreshToken,
 						user,
 					}),
@@ -109,6 +116,19 @@ const authSlice = createSlice({
 				state.accessToken = null;
 				state.refreshToken = null;
 				state.user = null;
+			})
+
+			.addCase(register.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(register.fulfilled, (state, action) => {
+				state.loading = false;
+				state.user = action.payload;
+			})
+			.addCase(register.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			});
 	},
 });

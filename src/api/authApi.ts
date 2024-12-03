@@ -1,7 +1,7 @@
 import axios from "axios";
+import { baseURL } from "~/intercepter/Intercepter";
 import { Account } from "~/types/interface/Account";
-
-const baseURL = "https://www.task-manager.api.mvn-training.com";
+import { RegisterUser } from "~/types/interface/RegisterUser";
 
 const authApi = {
 	postLogin: (account: Account) => {
@@ -11,6 +11,10 @@ const authApi = {
 	postLogout: () => {
 		const url = `${baseURL}/auth/logout`;
 		return axios.post(url);
+	},
+	postRegister: (registerUser: RegisterUser) => {
+		const url = `${baseURL}/auth/register`;
+		return axios.post(url, registerUser);
 	},
 };
 
