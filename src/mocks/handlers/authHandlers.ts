@@ -52,15 +52,21 @@ export const authHandlers = [
 			);
 			const existingEmail = users.find((user) => user.email === userReq.email);
 			if (existingUsername) {
-				return HttpResponse.json({
-					message: "Username  đã tồn tại",
-					statusCode: 409,
-				});
+				return HttpResponse.json(
+					{
+						message: "Username đã tồn tại",
+						statusCode: 409,
+					},
+					{ status: 409 },
+				);
 			} else if (existingEmail) {
-				return HttpResponse.json({
-					message: "Email đã tồn tại",
-					statusCode: 409,
-				});
+				return HttpResponse.json(
+					{
+						message: "Email đã tồn tại",
+						statusCode: 409,
+					},
+					{ status: 409 },
+				);
 			}
 
 			const newUser: User = {
@@ -90,10 +96,13 @@ export const authHandlers = [
 		async ({ request }) => {
 			const { username, password } = await request.json();
 			if (!username || !password) {
-				return HttpResponse.json({
-					message: "Username and password are required",
-					statusCode: 400,
-				});
+				return HttpResponse.json(
+					{
+						message: "Username and password are required",
+						statusCode: 400,
+					},
+					{ status: 400 },
+				);
 			}
 
 			const foundUser = users.find(
@@ -137,10 +146,15 @@ export const authHandlers = [
 
 			const existingUser = users.find((user) => user.id === userId);
 			if (!existingUser) {
-				return HttpResponse.json({
-					message: "User not found",
-					statusCode: 404,
-				});
+				return HttpResponse.json(
+					{
+						message: "User not found",
+						statusCode: 404,
+					},
+					{
+						status: 404,
+					},
+				);
 			}
 
 			if (
@@ -149,10 +163,13 @@ export const authHandlers = [
 					(user) => user.username === userUpdate.username && user.id !== userId,
 				)
 			) {
-				return HttpResponse.json({
-					message: "Username đã tồn tại",
-					statusCode: 409,
-				});
+				return HttpResponse.json(
+					{
+						message: "Username đã tồn tại",
+						statusCode: 409,
+					},
+					{ status: 409 },
+				);
 			}
 
 			if (
@@ -161,10 +178,13 @@ export const authHandlers = [
 					(user) => user.email === userUpdate.email && user.id !== userId,
 				)
 			) {
-				return HttpResponse.json({
-					message: "Email đã tồn tại",
-					statusCode: 409,
-				});
+				return HttpResponse.json(
+					{
+						message: "Email đã tồn tại",
+						statusCode: 409,
+					},
+					{ status: 409 },
+				);
 			}
 
 			existingUser.firstName = userUpdate.firstName || existingUser.firstName;
@@ -188,10 +208,15 @@ export const authHandlers = [
 
 			const userIndex = users.findIndex((user) => user.id === userId);
 			if (userIndex === -1) {
-				return HttpResponse.json({
-					message: "User not found",
-					statusCode: 404,
-				});
+				return HttpResponse.json(
+					{
+						message: "User not found",
+						statusCode: 404,
+					},
+					{
+						status: 404,
+					},
+				);
 			}
 
 			users.splice(userIndex, 1);

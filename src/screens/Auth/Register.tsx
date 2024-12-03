@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,6 +16,9 @@ const registerSchema = Yup.object().shape({
 	password: Yup.string()
 		.required("Mật khẩu không được để trống")
 		.min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+	rePassword: Yup.string()
+		.oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp")
+		.required("Xác nhận mật khẩu không được để trống"),
 	email: Yup.string()
 		.required("Email không được để trống")
 		.email("Email không hợp lệ"),
@@ -43,10 +46,21 @@ export const RegisterForm: React.FC = () => {
 		register,
 		handleSubmit,
 		formState: { errors },
+		watch,
+		trigger,
 	} = useForm({
 		resolver: yupResolver(registerSchema),
 		mode: "onChange",
 	});
+
+	const passwordValue = watch("password");
+	const rePasswordValue = watch("rePassword");
+	const isError = !!error || !!Object.keys(errors).length;
+	useEffect(() => {
+		if (passwordValue && rePasswordValue) {
+			trigger("rePassword");
+		}
+	}, [passwordValue, rePasswordValue, trigger]);
 
 	const onSubmit = async (data: RegisterUser) => {
 		const actionResult = await dispatch(registerAction(data));
@@ -184,11 +198,26 @@ export const RegisterForm: React.FC = () => {
 					</Form.Control.Feedback>
 				</Form.Group>
 
+				<Form.Group>
+					<Form.Label>
+						Xác nhận mật khẩu <span className="text-danger">*</span>
+					</Form.Label>
+					<Form.Control
+						type="password"
+						{...register("rePassword")}
+						isInvalid={!!errors.rePassword}
+						placeholder="Nhập lại mật khẩu"
+					/>
+					<Form.Control.Feedback type="invalid">
+						{errors.rePassword?.message}
+					</Form.Control.Feedback>
+				</Form.Group>
+
 				<Button
 					variant="primary"
 					type="submit"
 					className="w-full mt-3"
-					disabled={isLoading}
+					disabled={isLoading || isError}
 				>
 					{isLoading ? "Đang đăng ký..." : "Đăng ký"}
 				</Button>
