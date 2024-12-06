@@ -11,7 +11,7 @@ import {
 } from "react-bootstrap";
 import { BoxArrowRight, PersonCircle } from "react-bootstrap-icons";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import profileImage from "~/assets/profile.png";
 import { logout } from "~/store/slices/authSlice";
 import { AppDispatch } from "~/store/store";
@@ -57,7 +57,18 @@ const Header = () => {
 		<>
 			<Navbar bg="light" expand="lg" className="shadow-sm">
 				<Container fluid>
-					<Navbar.Brand href="#">Header</Navbar.Brand>
+					<Navbar.Brand as="div">
+						<NavLink
+							to="/tasks"
+							style={{
+								textDecoration: "none",
+								color: "#bf4930",
+								fontWeight: "bold",
+							}}
+						>
+							Tasks Manager
+						</NavLink>
+					</Navbar.Brand>
 					<Nav className="align-items-center">
 						<Dropdown>
 							<DropdownToggle
@@ -111,7 +122,7 @@ const Header = () => {
 				<Modal.Header closeButton>
 					<Modal.Title>Confirm Logout</Modal.Title>
 				</Modal.Header>
-				<Modal.Body>Are you sure you want to logout?</Modal.Body>
+				<Modal.Body>Are you sure you want to log out?</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={cancelLogout}>
 						Cancel
