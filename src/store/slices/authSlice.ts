@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
 	loginApi,
 	LoginResponse,
+	logoutApi,
 	registerApi,
 	RegisterResponse,
 } from "~/services/authApi";
@@ -49,23 +50,32 @@ export const register = createAsyncThunk<
 		return rejectWithValue(errorMessage);
 	}
 });
+export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
+	"auth/logout",
+	async (_, { rejectWithValue }) => {
+		try {
+			await logoutApi();
+			localStorage.removeItem("auth");
+		} catch (error: unknown) {
+			const err = error as { response?: { data?: { message?: string } } };
+			const errorMessage =
+				err.response?.data?.message || "Logout failed, please try again.";
+			return rejectWithValue(errorMessage);
+		}
+	},
+);
 
 const authSlice = createSlice({
 	name: "auth",
 	initialState,
 	reducers: {
-		logout: (state) => {
-			state.accessToken = null;
-			state.refreshToken = null;
-			state.user = null;
-			localStorage.removeItem("auth");
-		},
 		setAuthData: (state, action) => {
-			const { accessToken, refreshToken, user } = action.payload;
+			const { accessToken, refreshToken, data } = action.payload;
 			state.accessToken = accessToken;
 			state.refreshToken = refreshToken;
-			state.user = user;
+			state.user = data.user;
 
+			const user = data.user;
 			localStorage.setItem(
 				"auth",
 				JSON.stringify({
@@ -90,23 +100,23 @@ const authSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
+			// Handling login state
 			.addCase(login.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(login.fulfilled, (state, action) => {
-				const { accessToken, refreshToken, user } = action.payload;
+				const { accessToken, refreshToken, data } = action.payload;
 				state.accessToken = accessToken;
 				state.refreshToken = refreshToken;
-				state.user = user;
+				state.user = data.user;
 				state.loading = false;
-
 				localStorage.setItem(
 					"auth",
 					JSON.stringify({
-						accessToken: accessToken,
+						accessToken,
 						refreshToken,
-						user,
+						user: data.user,
 					}),
 				);
 			})
@@ -118,21 +128,38 @@ const authSlice = createSlice({
 				state.user = null;
 			})
 
+			// Handling register state
 			.addCase(register.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(register.fulfilled, (state, action) => {
 				state.loading = false;
-				console.log(action.payload);
 				state.user = action.payload.user;
 			})
 			.addCase(register.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload as string;
+			})
+
+			// Handling logout state
+			.addCase(logout.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(logout.fulfilled, (state) => {
+				state.loading = false;
+				state.accessToken = null;
+				state.refreshToken = null;
+				state.user = null;
+			})
+			.addCase(logout.rejected, (state, action) => {
+				state.loading = false;
+				state.error =
+					action.payload || "An unknown error occurred during logout.";
 			});
 	},
 });
 
-export const { setAuthData, logout, checkAuth } = authSlice.actions;
+export const { setAuthData, checkAuth, clearError } = authSlice.actions;
 export default authSlice.reducer;

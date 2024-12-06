@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 
 export const baseURL = "https://www.task-manager.api.mvn-training.com";
 
@@ -14,7 +14,13 @@ axiosInstance.interceptors.request.use(
 		const authDataString = localStorage.getItem("auth");
 		const authData = authDataString ? JSON.parse(authDataString) : null;
 		const token = authData?.accessToken;
-		config.headers["Authorization"] = `Bearer ${token}`;
+
+		if (token) {
+			config.headers["Authorization"] = `Bearer ${token}`;
+		} else {
+			delete config.headers["Authorization"];
+		}
+
 		return config;
 	},
 	(error) => {
@@ -23,20 +29,12 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-	(response: AxiosResponse) => response.data,
-	(error) => Promise.reject(error),
-);
-
-axiosInstance.interceptors.response.use(
-	(response) => response,
+	(response) => response.data,
 	(error) => {
-		if (error.response?.status === 404) {
-			console.error("This token is invalidated");
-
+		if (error.response?.status === 401) {
+			console.error("Token hết hạn hoặc không hợp lệ");
 			localStorage.removeItem("auth");
-
-			const redirectUrl = "/auth/login";
-			window.location.href = redirectUrl;
+			window.location.href = "/login";
 		}
 		return Promise.reject(error);
 	},

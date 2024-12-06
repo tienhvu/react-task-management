@@ -7,9 +7,9 @@ import { User } from "~/types/interface/User";
 export interface LoginResponse {
 	accessToken: string;
 	refreshToken: string;
-	user: User;
-	message: string;
-	statusCode: number;
+	data: {
+		user: User;
+	};
 }
 
 export interface RegisterResponse {

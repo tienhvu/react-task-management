@@ -40,7 +40,7 @@ export const LoginForm: React.FC = () => {
 			setShowSuccessAlert(true);
 			setTimeout(() => {
 				setShowSuccessAlert(false);
-				navigate("/manage-task");
+				navigate("/tasks");
 			}, 2000);
 		}
 	};

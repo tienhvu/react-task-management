@@ -51,27 +51,30 @@ function isTokenValid(token: string | null): boolean {
 export const authHandlers = [
 	http.all("*", async ({ request }) => {
 		const publicRoutes = [`${baseURL}/auth/login`, `${baseURL}/auth/register`];
-		if (publicRoutes.some((route) => request.url.includes(route))) {
-			return;
-		}
 
-		const authHeader = request.headers.get("Authorization");
-		const token = authHeader ? authHeader.replace("Bearer ", "") : null;
+		if (request.url.startsWith(baseURL)) {
+			if (publicRoutes.some((route) => request.url.startsWith(route))) {
+				return;
+			}
 
-		if (!token || !isTokenValid(token)) {
-			return HttpResponse.json(
-				{
-					message: "Unauthorized. Please log in.",
-					statusCode: 401,
-					redirectUrl: "/login",
-				},
-				{
-					status: 401,
-					headers: {
-						"X-Redirect": "/login",
+			const authHeader = request.headers.get("Authorization");
+			const token = authHeader ? authHeader.replace("Bearer ", "") : null;
+
+			if (!token || !isTokenValid(token)) {
+				return HttpResponse.json(
+					{
+						message: "Unauthorized. Please log in.",
+						statusCode: 401,
+						redirectUrl: "/login",
 					},
-				},
-			);
+					{
+						status: 401,
+						headers: {
+							"X-Redirect": "/login",
+						},
+					},
+				);
+			}
 		}
 	}),
 
@@ -148,6 +151,8 @@ export const authHandlers = [
 		);
 		if (foundUser) {
 			const { password, ...userWithoutPassword } = foundUser;
+			console.log("ServerResponse: ", foundUser);
+
 			return HttpResponse.json(
 				{
 					data: {
