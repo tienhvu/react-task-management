@@ -1,13 +1,13 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useState } from "react";
+import React from "react";
 import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
-import yup from "~/validations/schema/yupConfig";
 import { login } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Account } from "~/types/interface/Account";
+import yup from "~/validations/schema/yupConfig";
 
 const loginSchema = yup.object().shape({
 	username: yup.string().username(),
@@ -20,8 +20,6 @@ export const LoginForm: React.FC = () => {
 	const { error, loading: isLoading } = useSelector(
 		(state: RootState) => state.auth,
 	);
-
-	const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
 	const {
 		register,
@@ -37,11 +35,7 @@ export const LoginForm: React.FC = () => {
 		const actionResult = await dispatch(login(data));
 		if (login.fulfilled.match(actionResult)) {
 			reset();
-			setShowSuccessAlert(true);
-			setTimeout(() => {
-				setShowSuccessAlert(false);
-				navigate("/tasks");
-			}, 2000);
+			navigate("/tasks");
 		}
 	};
 
@@ -53,16 +47,6 @@ export const LoginForm: React.FC = () => {
 				style={{ width: "500px" }}
 			>
 				<h1 className="text-center font-bold mb-6">Đăng Nhập</h1>
-
-				{showSuccessAlert && (
-					<Alert
-						variant="success"
-						onClose={() => setShowSuccessAlert(false)}
-						dismissible
-					>
-						Đăng nhập thành công!
-					</Alert>
-				)}
 
 				{error && (
 					<Alert
