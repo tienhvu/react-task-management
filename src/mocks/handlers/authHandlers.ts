@@ -114,7 +114,6 @@ export const authHandlers = [
 				firstName: userReq.firstName,
 				lastName: userReq.lastName,
 				gender: userReq.gender,
-				image: "https://via.placeholder.com/150",
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			};
@@ -232,7 +231,6 @@ export const authHandlers = [
 			existingUser.firstName = userUpdate.firstName || existingUser.firstName;
 			existingUser.lastName = userUpdate.lastName || existingUser.lastName;
 			existingUser.gender = userUpdate.gender || existingUser.gender;
-			existingUser.image = userUpdate.image || existingUser.image;
 			existingUser.username = userUpdate.username || existingUser.username;
 			existingUser.email = userUpdate.email || existingUser.email;
 			existingUser.updatedAt = new Date();
