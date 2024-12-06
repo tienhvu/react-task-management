@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import NotFoundPage from "~/components/NotFoundPage";
+import PublicPage from "~/components/PublicPage";
 import { LoginForm } from "~/screens/Auth/Login";
 
 import RegisterForm from "~/screens/Auth/Register";
@@ -8,7 +10,8 @@ function AppRoutes() {
 		<Routes>
 			<Route path="/login" element={<LoginForm />} />
 			<Route path="/register" element={<RegisterForm />} />
-			<Route path="*" element={<Navigate to="/login" />} />
+			<Route path="/" element={<PublicPage />} />
+			<Route path="*" element={<NotFoundPage />} />
 		</Routes>
 	);
 }

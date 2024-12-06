@@ -4,18 +4,14 @@ import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
-import * as Yup from "yup";
+import yup from "~/validations/schema/yupConfig";
 import { login } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Account } from "~/types/interface/Account";
 
-const loginSchema = Yup.object().shape({
-	username: Yup.string()
-		.required("Tên đăng nhập không được để trống")
-		.min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
-	password: Yup.string()
-		.required("Mật khẩu không được để trống")
-		.min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+const loginSchema = yup.object().shape({
+	username: yup.string().username(),
+	password: yup.string().password(),
 });
 
 export const LoginForm: React.FC = () => {
@@ -30,7 +26,8 @@ export const LoginForm: React.FC = () => {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isValid },
+		reset,
 	} = useForm({
 		resolver: yupResolver(loginSchema),
 		mode: "onChange",
@@ -39,8 +36,8 @@ export const LoginForm: React.FC = () => {
 	const onSubmit = async (data: Account) => {
 		const actionResult = await dispatch(login(data));
 		if (login.fulfilled.match(actionResult)) {
+			reset();
 			setShowSuccessAlert(true);
-
 			setTimeout(() => {
 				setShowSuccessAlert(false);
 				navigate("/manage-task");
@@ -106,7 +103,7 @@ export const LoginForm: React.FC = () => {
 					variant="primary"
 					type="submit"
 					className="w-full mt-3"
-					disabled={isLoading}
+					disabled={isLoading || !isValid}
 				>
 					{isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
 				</Button>
@@ -114,11 +111,7 @@ export const LoginForm: React.FC = () => {
 				<div className="text-center mt-4">
 					<p>
 						Chưa có tài khoản?{" "}
-						<NavLink
-							to="/register"
-							className="text-blue-600 hover:underline"
-							onClick={() => dispatch({ type: "auth/clearError" })}
-						>
+						<NavLink to="/register" className="text-blue-600 hover:underline">
 							Đăng ký
 						</NavLink>
 					</p>

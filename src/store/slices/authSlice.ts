@@ -1,9 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import authApi from "~/api/authApi";
+import {
+	loginApi,
+	LoginResponse,
+	registerApi,
+	RegisterResponse,
+} from "~/services/authApi";
 import { Account } from "~/types/interface/Account";
 import { AuthState } from "~/types/interface/AuthState";
 import { RegisterUser } from "~/types/interface/RegisterUser";
-import { User } from "~/types/interface/User";
 
 const initialState: AuthState = {
 	user: null,
@@ -14,20 +18,14 @@ const initialState: AuthState = {
 };
 
 export const login = createAsyncThunk<
-	{
-		accessToken: string;
-		refreshToken: string;
-		tokenExpires: number;
-		user: User;
-	},
+	LoginResponse,
 	Account,
 	{ rejectValue: string }
 >("auth/login", async (account: Account, { rejectWithValue }) => {
 	try {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		const response = await authApi.postLogin(account);
-		console.log(response.data);
-		return response.data;
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+		const response = await loginApi(account);
+		return response;
 	} catch (error: unknown) {
 		const err = error as { response?: { data?: { message?: string } } };
 		const errorMessage =
@@ -36,19 +34,21 @@ export const login = createAsyncThunk<
 	}
 });
 
-export const register = createAsyncThunk(
-	"auth/register",
-	async (userData: RegisterUser, { rejectWithValue }) => {
-		try {
-			const response = await authApi.postRegister(userData);
-			return response.data;
-		} catch (error: unknown) {
-			const err = error as { response?: { data?: { message?: string } } };
-			const errorMessage = err.response?.data?.message || "Đăng ký thất bại";
-			return rejectWithValue(errorMessage);
-		}
-	},
-);
+export const register = createAsyncThunk<
+	RegisterResponse,
+	RegisterUser,
+	{ rejectValue: string }
+>("auth/register", async (userData: RegisterUser, { rejectWithValue }) => {
+	try {
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+		const response = await registerApi(userData);
+		return response;
+	} catch (error: unknown) {
+		const err = error as { response?: { data?: { message?: string } } };
+		const errorMessage = err.response?.data?.message || "Đăng ký thất bại";
+		return rejectWithValue(errorMessage);
+	}
+});
 
 const authSlice = createSlice({
 	name: "auth",
@@ -124,7 +124,8 @@ const authSlice = createSlice({
 			})
 			.addCase(register.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload;
+				console.log(action.payload);
+				state.user = action.payload.user;
 			})
 			.addCase(register.rejected, (state, action) => {
 				state.loading = false;

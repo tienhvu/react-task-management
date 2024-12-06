@@ -2,19 +2,23 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import { User } from "~/types/interface/User";
 import { http, HttpResponse } from "msw";
-import { baseURL } from "~/interceptor/Interceptor";
+import { baseURL } from "~/api/axiosInstance";
 import { ErrorResponse } from "~/types/interface/ErrorResponse";
 import { v4 as uuidv4 } from "uuid";
 
 type LoginResponse = {
 	user: Omit<User, "password">;
-	accessToken: string;
-	refreshToken: string;
 };
 
 type LoginRequestBody = {
 	username: string;
 	password: string;
+};
+
+type SuccessResponse<T> = {
+	data: T;
+	accessToken: string;
+	refreshToken: string;
 };
 
 type UpdateUserBody = {
@@ -40,9 +44,39 @@ function generateId(): string {
 	return `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
+function isTokenValid(token: string | null): boolean {
+	const activeTokens = JSON.parse(localStorage.getItem("activeTokens") || "{}");
+	return token !== null && activeTokens[token] !== undefined;
+}
 export const authHandlers = [
+	http.all("*", async ({ request }) => {
+		const publicRoutes = [`${baseURL}/auth/login`, `${baseURL}/auth/register`];
+		if (publicRoutes.some((route) => request.url.includes(route))) {
+			return;
+		}
+
+		const authHeader = request.headers.get("Authorization");
+		const token = authHeader ? authHeader.replace("Bearer ", "") : null;
+
+		if (!token || !isTokenValid(token)) {
+			return HttpResponse.json(
+				{
+					message: "Unauthorized. Please log in.",
+					statusCode: 401,
+					redirectUrl: "/login",
+				},
+				{
+					status: 401,
+					headers: {
+						"X-Redirect": "/login",
+					},
+				},
+			);
+		}
+	}),
+
 	//Register
-	http.post<{}, User, Omit<User, "password"> | ErrorResponse>(
+	http.post<{}, User, { data: Omit<User, "password"> } | ErrorResponse>(
 		`${baseURL}/auth/register`,
 		async ({ request }) => {
 			const userReq = await request.json();
@@ -54,7 +88,7 @@ export const authHandlers = [
 			if (existingUsername) {
 				return HttpResponse.json(
 					{
-						message: "Username đã tồn tại",
+						message: "Username is already existed",
 						statusCode: 409,
 					},
 					{ status: 409 },
@@ -62,7 +96,7 @@ export const authHandlers = [
 			} else if (existingEmail) {
 				return HttpResponse.json(
 					{
-						message: "Email đã tồn tại",
+						message: "Email is already existed",
 						statusCode: 409,
 					},
 					{ status: 409 },
@@ -86,51 +120,54 @@ export const authHandlers = [
 			updateLocalStorage();
 
 			const { password: _, ...userWithoutPassword } = newUser;
-			return HttpResponse.json(userWithoutPassword, { status: 201 });
+			return HttpResponse.json({ data: userWithoutPassword }, { status: 201 });
 		},
 	),
 
 	// Login
-	http.post<{}, LoginRequestBody, LoginResponse | ErrorResponse>(
-		`${baseURL}/auth/login`,
-		async ({ request }) => {
-			const { username, password } = await request.json();
-			if (!username || !password) {
-				return HttpResponse.json(
-					{
-						message: "Username and password are required",
-						statusCode: 400,
-					},
-					{ status: 400 },
-				);
-			}
-
-			const foundUser = users.find(
-				(u) =>
-					u.username.trim() === username.trim() &&
-					u.password.trim() === password.trim(),
+	http.post<
+		{},
+		LoginRequestBody,
+		SuccessResponse<LoginResponse> | ErrorResponse
+	>(`${baseURL}/auth/login`, async ({ request }) => {
+		const { username, password } = await request.json();
+		if (!username || !password) {
+			return HttpResponse.json(
+				{
+					message: "Username and password are required",
+					statusCode: 400,
+				},
+				{ status: 400 },
 			);
-			if (foundUser) {
-				const { password, ...userWithoutPassword } = foundUser;
-				return HttpResponse.json(
-					{
+		}
+
+		const foundUser = users.find(
+			(u) =>
+				u.username.trim() === username.trim() &&
+				u.password.trim() === password.trim(),
+		);
+		if (foundUser) {
+			const { password, ...userWithoutPassword } = foundUser;
+			return HttpResponse.json(
+				{
+					data: {
 						user: userWithoutPassword,
-						accessToken: generateRandomToken(),
-						refreshToken: generateRandomToken(),
 					},
-					{ status: 200 },
-				);
-			} else {
-				return HttpResponse.json(
-					{
-						message: "Invalid username or password",
-						statusCode: 401,
-					},
-					{ status: 401 },
-				);
-			}
-		},
-	),
+					accessToken: generateRandomToken(),
+					refreshToken: generateRandomToken(),
+				},
+				{ status: 200 },
+			);
+		} else {
+			return HttpResponse.json(
+				{
+					message: "Invalid username or password",
+					statusCode: 400,
+				},
+				{ status: 400 },
+			);
+		}
+	}),
 
 	// Logout
 	http.post(`${baseURL}/auth/logout`, () => {
@@ -165,7 +202,7 @@ export const authHandlers = [
 			) {
 				return HttpResponse.json(
 					{
-						message: "Username đã tồn tại",
+						message: "Username is already existed",
 						statusCode: 409,
 					},
 					{ status: 409 },
@@ -180,7 +217,7 @@ export const authHandlers = [
 			) {
 				return HttpResponse.json(
 					{
-						message: "Email đã tồn tại",
+						message: "Email is already existed",
 						statusCode: 409,
 					},
 					{ status: 409 },

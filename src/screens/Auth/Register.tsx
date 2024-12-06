@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,12 +10,8 @@ import { AppDispatch, RootState } from "~/store/store";
 import { RegisterUser } from "~/types/interface/RegisterUser";
 
 const registerSchema = Yup.object().shape({
-	username: Yup.string()
-		.required("Tên đăng nhập không được để trống")
-		.min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
-	password: Yup.string()
-		.required("Mật khẩu không được để trống")
-		.min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+	username: Yup.string().username(),
+	password: Yup.string().password(),
 	rePassword: Yup.string()
 		.oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp")
 		.required("Xác nhận mật khẩu không được để trống"),
@@ -45,9 +41,10 @@ export const RegisterForm: React.FC = () => {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isValid },
 		watch,
 		trigger,
+		reset,
 	} = useForm({
 		resolver: yupResolver(registerSchema),
 		mode: "onChange",
@@ -55,24 +52,31 @@ export const RegisterForm: React.FC = () => {
 
 	const passwordValue = watch("password");
 	const rePasswordValue = watch("rePassword");
-	const isError = !!error || !!Object.keys(errors).length;
+
 	useEffect(() => {
 		if (passwordValue && rePasswordValue) {
 			trigger("rePassword");
 		}
 	}, [passwordValue, rePasswordValue, trigger]);
 
-	const onSubmit = async (data: RegisterUser) => {
-		const actionResult = await dispatch(registerAction(data));
-		if (registerAction.fulfilled.match(actionResult)) {
-			setShowSuccessAlert(true);
+	const onSubmit = useCallback(
+		async (data: RegisterUser) => {
+			const actionResult = await dispatch(registerAction(data));
+			if (registerAction.fulfilled.match(actionResult)) {
+				reset();
+				setShowSuccessAlert(true);
+				setTimeout(() => {
+					setShowSuccessAlert(false);
+					navigate("/login");
+				}, 3000);
+			}
+		},
+		[dispatch, navigate, reset],
+	);
 
-			setTimeout(() => {
-				setShowSuccessAlert(false);
-				navigate("/login");
-			}, 2000);
-		}
-	};
+	useEffect(() => {
+		dispatch({ type: "auth/clearError" });
+	}, [dispatch]);
 
 	return (
 		<div className="d-flex justify-content-center align-items-center vh-100 bg-light">
@@ -89,7 +93,7 @@ export const RegisterForm: React.FC = () => {
 						onClose={() => setShowSuccessAlert(false)}
 						dismissible
 					>
-						Đăng ký thành công!
+						Đăng ký thành công! Chuyển hướng sang trang đăng nhập sau 3 giây!
 					</Alert>
 				)}
 
@@ -217,7 +221,7 @@ export const RegisterForm: React.FC = () => {
 					variant="primary"
 					type="submit"
 					className="w-full mt-3"
-					disabled={isLoading || isError}
+					disabled={isLoading || !isValid}
 				>
 					{isLoading ? "Đang đăng ký..." : "Đăng ký"}
 				</Button>
@@ -225,11 +229,7 @@ export const RegisterForm: React.FC = () => {
 				<div className="text-center mt-4">
 					<p>
 						Đã có tài khoản?{" "}
-						<NavLink
-							to="/login"
-							className="text-blue-600 hover:underline"
-							onClick={() => dispatch({ type: "auth/clearError" })}
-						>
+						<NavLink to="/login" className="text-blue-600 hover:underline">
 							Đăng nhập
 						</NavLink>
 					</p>
