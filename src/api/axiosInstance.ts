@@ -30,8 +30,12 @@ axiosInstance.interceptors.response.use(
 axiosInstance.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		if (error.response?.status === 401) {
-			const redirectUrl = error.response.headers["x-redirect"] || "/auth/login";
+		if (error.response?.status === 404) {
+			console.error("This token is invalidated");
+
+			localStorage.removeItem("auth");
+
+			const redirectUrl = "/auth/login";
 			window.location.href = redirectUrl;
 		}
 		return Promise.reject(error);
