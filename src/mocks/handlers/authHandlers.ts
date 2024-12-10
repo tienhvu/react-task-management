@@ -90,7 +90,7 @@ export const authHandlers = [
 		`${baseURL}/auth/register`,
 		async ({ request }) => {
 			const userReq = await request.json();
-
+			await new Promise((resolve) => setTimeout(resolve, 2000));
 			const existingUsername = users.find(
 				(user) => user.username === userReq.username,
 			);
@@ -140,6 +140,7 @@ export const authHandlers = [
 		SuccessResponse<LoginResponse> | ErrorResponse
 	>(`${baseURL}/auth/login`, async ({ request }) => {
 		const { username, password } = await request.json();
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		if (!username || !password) {
 			return HttpResponse.json(
 				{
@@ -179,8 +180,11 @@ export const authHandlers = [
 	}),
 
 	// Logout
-	http.post(`${baseURL}/auth/logout`, () => {
-		return HttpResponse.json(null, { status: 200 });
+	http.post(`${baseURL}/auth/logout`, async ({ request }) => {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+		return HttpResponse.json(null, {
+			status: 200,
+		});
 	}),
 
 	// Update user
@@ -191,6 +195,7 @@ export const authHandlers = [
 	>(`${baseURL}/users/:userId`, async ({ params, request }) => {
 		const { userId } = params;
 		const userUpdate = await request.json();
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		const existingUser = users.find((user) => user.id === userId);
 		if (!existingUser) {
 			return HttpResponse.json(
@@ -253,9 +258,9 @@ export const authHandlers = [
 
 	http.delete<{ userId: string }, {}, ErrorResponse | null>(
 		`${baseURL}/users/:userId`,
-		({ params }) => {
+		async ({ params }) => {
 			const { userId } = params;
-
+			await new Promise((resolve) => setTimeout(resolve, 2000));
 			const userIndex = users.findIndex((user) => user.id === userId);
 			if (userIndex === -1) {
 				return HttpResponse.json(

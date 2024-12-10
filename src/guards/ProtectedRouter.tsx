@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-	redirectPath = "/login",
+	redirectPath = "/",
 	children,
 }) => {
 	const location = useLocation();

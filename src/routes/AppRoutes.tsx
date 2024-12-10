@@ -12,8 +12,6 @@ function AppRoutes() {
 		<Routes>
 			<Route path="/login" element={<LoginForm />} />
 			<Route path="/register" element={<RegisterForm />} />
-			{/* <Route path="/profile" element={<Profile />} /> */}
-
 			<Route
 				path="/profile"
 				element={
@@ -30,7 +28,6 @@ function AppRoutes() {
 					</ProtectedRoute>
 				}
 			/>
-			{/* <Route path="/tasks" element={<Task />} /> */}
 			<Route path="/" element={<PublicPage />} />
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>

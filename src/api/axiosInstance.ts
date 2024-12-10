@@ -10,17 +10,11 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(
-	async (config) => {
-		const authDataString = localStorage.getItem("auth");
-		const authData = authDataString ? JSON.parse(authDataString) : null;
-		const token = authData?.accessToken;
-
+	(config) => {
+		const token = JSON.parse(localStorage.getItem("auth") ?? "{}")?.accessToken;
 		if (token) {
 			config.headers["Authorization"] = `Bearer ${token}`;
-		} else {
-			delete config.headers["Authorization"];
 		}
-
 		return config;
 	},
 	(error) => {
@@ -29,13 +23,15 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-	(response) => response.data,
-	(error) => {
-		if (error.response?.status === 401) {
-			console.error("Token hết hạn hoặc không hợp lệ");
-			localStorage.removeItem("auth");
-			window.location.href = "/login";
+	(response) => {
+		if (response.data) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { headers, ...responseData } = response.data;
+			return responseData;
 		}
+		return response;
+	},
+	(error) => {
 		return Promise.reject(error);
 	},
 );

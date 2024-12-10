@@ -12,13 +12,13 @@ import {
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
-import Header from "~/components/Header";
 import ResetPasswordForm from "~/components/ResetPasswordForm";
+import MainLayout from "~/layouts/MainLayout";
 import { UpdateUserRequest } from "~/services/userApi";
 import { updateUserInAuth } from "~/store/slices/authSlice";
 import { updateUser } from "~/store/slices/userSlice";
 import { AppDispatch, RootState } from "~/store/store";
-import yupConfig from "~/validations/schema/yupConfig";
+import yupConfig from "~/validations/schema/yup";
 const profileUpdateSchema = Yup.object().shape({
 	username: yupConfig.string().username().optional(),
 	email: yupConfig.string().emailTest().optional(),
@@ -94,8 +94,7 @@ const Profile = () => {
 	}
 
 	return (
-		<>
-			<Header />
+		<MainLayout>
 			<Container className="mt-5">
 				<Row className="justify-content-md-center">
 					<Col md={8}>
@@ -286,7 +285,7 @@ const Profile = () => {
 					</Col>
 				</Row>
 			</Container>
-		</>
+		</MainLayout>
 	);
 };
 

@@ -1,41 +1,49 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React from "react";
+import React, { useEffect } from "react";
 import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useToast } from "~/components/Toast";
 import { login } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Account } from "~/types/interface/Account";
-import yup from "~/validations/schema/yupConfig";
+import yup from "~/validations/schema/yup";
 
 const loginSchema = yup.object().shape({
-	username: yup.string().username(),
-	password: yup.string().password(),
+	username: yup.string().username().required(),
+	password: yup.string().password().required(),
 });
 
 export const LoginForm: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
-	const { error, loading: isLoading } = useSelector(
-		(state: RootState) => state.auth,
-	);
-
+	const {
+		error,
+		loading: isLoading,
+		accessToken,
+	} = useSelector((state: RootState) => state.auth);
+	const { showToast } = useToast();
 	const {
 		register,
 		handleSubmit,
 		formState: { errors, isValid },
-		reset,
 	} = useForm({
 		resolver: yupResolver(loginSchema),
 		mode: "onChange",
 	});
 
+	useEffect(() => {
+		if (accessToken) {
+			navigate("/");
+		}
+	}, [accessToken, navigate]);
+
 	const onSubmit = async (data: Account) => {
 		const actionResult = await dispatch(login(data));
 		if (login.fulfilled.match(actionResult)) {
-			reset();
-			navigate("/tasks");
+			showToast("Đăng nhập thành công!");
+			navigate("/");
 		}
 	};
 

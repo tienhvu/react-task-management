@@ -75,3 +75,5 @@ declare module "yup" {
 		gender(params?: { message?: string }): StringSchema;
 	}
 }
+
+export default yup;
