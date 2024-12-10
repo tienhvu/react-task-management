@@ -5,7 +5,7 @@ export interface User {
 	email: string;
 	firstName: string;
 	lastName: string;
-	gender?: string;
+	gender: string;
 	createdAt: Date;
 	updatedAt: Date;
 }

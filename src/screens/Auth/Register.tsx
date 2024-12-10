@@ -1,32 +1,26 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
+import { useToast } from "~/components/Toast";
 import { register as registerAction } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { RegisterUser } from "~/types/interface/RegisterUser";
+import yupConfig from "~/validations/schema/yup";
 
 const registerSchema = Yup.object().shape({
-	username: Yup.string().username(),
-	password: Yup.string().password(),
+	username: yupConfig.string().username().default(""),
+	password: yupConfig.string().password().default(""),
 	rePassword: Yup.string()
 		.oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp")
 		.required("Xác nhận mật khẩu không được để trống"),
-	email: Yup.string()
-		.required("Email không được để trống")
-		.email("Email không hợp lệ"),
-	firstName: Yup.string()
-		.required("Tên không được để trống")
-		.min(2, "Tên phải có ít nhất 2 ký tự"),
-	lastName: Yup.string()
-		.required("Họ không được để trống")
-		.min(2, "Họ phải có ít nhất 2 ký tự"),
-	gender: Yup.string()
-		.required("Giới tính không được để trống")
-		.oneOf(["Male", "Female", "Other"], "Giới tính không hợp lệ"),
+	email: yupConfig.string().emailTest().default(""),
+	firstName: yupConfig.string().firstName().default(""),
+	lastName: yupConfig.string().lastName().default(""),
+	gender: yupConfig.string().gender().default(""),
 });
 
 export const RegisterForm: React.FC = () => {
@@ -36,7 +30,7 @@ export const RegisterForm: React.FC = () => {
 		(state: RootState) => state.auth,
 	);
 
-	const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+	const { showToast } = useToast();
 
 	const {
 		register,
@@ -59,24 +53,15 @@ export const RegisterForm: React.FC = () => {
 		}
 	}, [passwordValue, rePasswordValue, trigger]);
 
-	const onSubmit = useCallback(
-		async (data: RegisterUser) => {
-			const actionResult = await dispatch(registerAction(data));
-			if (registerAction.fulfilled.match(actionResult)) {
-				reset();
-				setShowSuccessAlert(true);
-				setTimeout(() => {
-					setShowSuccessAlert(false);
-					navigate("/login");
-				}, 3000);
-			}
-		},
-		[dispatch, navigate, reset],
-	);
-
-	useEffect(() => {
-		dispatch({ type: "auth/clearError" });
-	}, [dispatch]);
+	const onSubmit = async (data: RegisterUser) => {
+		const actionResult = await dispatch(registerAction(data));
+		if (registerAction.fulfilled.match(actionResult)) {
+			dispatch({ type: "auth/clearError" });
+			reset();
+			showToast("Đăng ký thành công!");
+			navigate("/login");
+		}
+	};
 
 	return (
 		<div className="d-flex justify-content-center align-items-center vh-100 bg-light">
@@ -86,16 +71,6 @@ export const RegisterForm: React.FC = () => {
 				style={{ width: "500px", height: "auto" }}
 			>
 				<h1 className="text-center font-bold mb-6">Đăng Ký</h1>
-
-				{showSuccessAlert && (
-					<Alert
-						variant="success"
-						onClose={() => setShowSuccessAlert(false)}
-						dismissible
-					>
-						Đăng ký thành công! Chuyển hướng sang trang đăng nhập sau 3 giây!
-					</Alert>
-				)}
 
 				{error && (
 					<Alert

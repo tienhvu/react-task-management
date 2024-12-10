@@ -1,11 +1,10 @@
-import Header from "~/components/Header";
+import MainLayout from "~/layouts/MainLayout";
 
 const Task = () => {
 	return (
-		<>
-			<Header />
+		<MainLayout>
 			<h1>Task manager</h1>
-		</>
+		</MainLayout>
 	);
 };
 export default Task;

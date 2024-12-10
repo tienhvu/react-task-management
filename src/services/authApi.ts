@@ -23,7 +23,7 @@ export const loginApi = (account: Account): Promise<LoginResponse> => {
 	return axiosInstance.post(url, account);
 };
 
-export const logoutApi = (): Promise<AxiosResponse<unknown>> => {
+export const logoutApi = (): Promise<AxiosResponse<void>> => {
 	const url = "/auth/logout";
 	return axiosInstance.post(url);
 };

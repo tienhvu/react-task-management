@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
 	loginApi,
 	LoginResponse,
@@ -9,6 +9,7 @@ import {
 import { Account } from "~/types/interface/Account";
 import { AuthState } from "~/types/interface/AuthState";
 import { RegisterUser } from "~/types/interface/RegisterUser";
+import { User } from "~/types/interface/User";
 
 const initialState: AuthState = {
 	user: null,
@@ -22,16 +23,13 @@ export const login = createAsyncThunk<
 	LoginResponse,
 	Account,
 	{ rejectValue: string }
->("auth/login", async (account: Account, { rejectWithValue }) => {
+>("auth/login", async (account, { rejectWithValue }) => {
 	try {
-		await new Promise((resolve) => setTimeout(resolve, 2000));
 		const response = await loginApi(account);
 		return response;
 	} catch (error: unknown) {
 		const err = error as { response?: { data?: { message?: string } } };
-		const errorMessage =
-			err.response?.data?.message || "An unknown error occurred";
-		return rejectWithValue(errorMessage);
+		return rejectWithValue(err.response?.data?.message || "Login failed");
 	}
 });
 
@@ -39,28 +37,24 @@ export const register = createAsyncThunk<
 	RegisterResponse,
 	RegisterUser,
 	{ rejectValue: string }
->("auth/register", async (userData: RegisterUser, { rejectWithValue }) => {
+>("auth/register", async (userData, { rejectWithValue }) => {
 	try {
-		await new Promise((resolve) => setTimeout(resolve, 2000));
 		const response = await registerApi(userData);
 		return response;
 	} catch (error: unknown) {
 		const err = error as { response?: { data?: { message?: string } } };
-		const errorMessage = err.response?.data?.message || "Đăng ký thất bại";
-		return rejectWithValue(errorMessage);
+		return rejectWithValue(err.response?.data?.message || "Register failed");
 	}
 });
+
 export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
 	"auth/logout",
 	async (_, { rejectWithValue }) => {
 		try {
 			await logoutApi();
-			localStorage.removeItem("auth");
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
-			const errorMessage =
-				err.response?.data?.message || "Logout failed, please try again.";
-			return rejectWithValue(errorMessage);
+			return rejectWithValue(err.response?.data?.message || "Logout failed");
 		}
 	},
 );
@@ -69,97 +63,56 @@ const authSlice = createSlice({
 	name: "auth",
 	initialState,
 	reducers: {
-		setAuthData: (state, action) => {
-			const { accessToken, refreshToken, data } = action.payload;
-			state.accessToken = accessToken;
-			state.refreshToken = refreshToken;
-			state.user = data.user;
-
-			const user = data.user;
-			localStorage.setItem(
-				"auth",
-				JSON.stringify({
-					accessToken,
-					refreshToken,
-					user,
-				}),
-			);
-		},
-		checkAuth: (state) => {
-			const storedAuth = localStorage.getItem("auth");
-			if (storedAuth) {
-				const authData = JSON.parse(storedAuth);
-				state.accessToken = authData.accessToken;
-				state.refreshToken = authData.refreshToken;
-				state.user = authData.user;
-			}
-		},
 		clearError: (state) => {
 			state.error = null;
+		},
+		updateUserInAuth: (state, action: PayloadAction<User>) => {
+			state.user = { ...state.user, ...action.payload };
 		},
 	},
 	extraReducers: (builder) => {
 		builder
-			// Handling login state
 			.addCase(login.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(login.fulfilled, (state, action) => {
-				const { accessToken, refreshToken, data } = action.payload;
-				state.accessToken = accessToken;
-				state.refreshToken = refreshToken;
-				state.user = data.user;
-				state.loading = false;
-				localStorage.setItem(
-					"auth",
-					JSON.stringify({
-						accessToken,
-						refreshToken,
-						user: data.user,
-					}),
-				);
-			})
+			.addCase(
+				login.fulfilled,
+				(state, action: PayloadAction<LoginResponse>) => {
+					const { accessToken, refreshToken, data } = action.payload;
+					state.accessToken = accessToken;
+					state.refreshToken = refreshToken;
+					state.user = data.user;
+					state.loading = false;
+				},
+			)
 			.addCase(login.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload || "Đăng nhập thất bại";
+				state.error = action.payload || "Login failed";
 				state.accessToken = null;
 				state.refreshToken = null;
 				state.user = null;
 			})
-
-			// Handling register state
 			.addCase(register.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(register.fulfilled, (state, action) => {
+			.addCase(register.fulfilled, (state) => {
 				state.loading = false;
-				state.user = action.payload.user;
 			})
 			.addCase(register.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload as string;
-			})
-
-			// Handling logout state
-			.addCase(logout.pending, (state) => {
-				state.loading = true;
-				state.error = null;
+				state.error = action.payload || "Register failed";
 			})
 			.addCase(logout.fulfilled, (state) => {
-				state.loading = false;
 				state.accessToken = null;
 				state.refreshToken = null;
 				state.user = null;
-			})
-			.addCase(logout.rejected, (state, action) => {
-				state.loading = false;
-				state.error =
-					action.payload || "An unknown error occurred during logout.";
+				state.error = null;
+				localStorage.removeItem("auth");
 			});
 	},
 });
 
-export const { setAuthData, checkAuth, clearError } = authSlice.actions;
+export const { clearError, updateUserInAuth } = authSlice.actions;
 export default authSlice.reducer;
