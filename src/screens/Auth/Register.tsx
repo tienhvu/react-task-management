@@ -4,29 +4,22 @@ import { Alert, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
-import * as Yup from "yup";
 import { register as registerAction } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { RegisterUser } from "~/types/interface/RegisterUser";
+import * as Yup from "yup";
+import yupConfig from "~/validations/schema/yupConfig";
 
 const registerSchema = Yup.object().shape({
-	username: Yup.string().username(),
-	password: Yup.string().password(),
+	username: yupConfig.string().username().default(""),
+	password: yupConfig.string().password().default(""),
 	rePassword: Yup.string()
 		.oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp")
 		.required("Xác nhận mật khẩu không được để trống"),
-	email: Yup.string()
-		.required("Email không được để trống")
-		.email("Email không hợp lệ"),
-	firstName: Yup.string()
-		.required("Tên không được để trống")
-		.min(2, "Tên phải có ít nhất 2 ký tự"),
-	lastName: Yup.string()
-		.required("Họ không được để trống")
-		.min(2, "Họ phải có ít nhất 2 ký tự"),
-	gender: Yup.string()
-		.required("Giới tính không được để trống")
-		.oneOf(["Male", "Female", "Other"], "Giới tính không hợp lệ"),
+	email: yupConfig.string().emailTest().default(""),
+	firstName: yupConfig.string().firstName().default(""),
+	lastName: yupConfig.string().lastName().default(""),
+	gender: yupConfig.string().gender().default(""),
 });
 
 export const RegisterForm: React.FC = () => {

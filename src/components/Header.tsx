@@ -1,29 +1,25 @@
 import { useState } from "react";
 import {
+	Button,
 	Container,
 	Dropdown,
 	DropdownToggle,
 	Image,
+	Modal,
 	Nav,
 	Navbar,
-	Modal,
-	Button,
 } from "react-bootstrap";
 import { BoxArrowRight, PersonCircle } from "react-bootstrap-icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 import profileImage from "~/assets/profile.png";
 import { logout } from "~/store/slices/authSlice";
-import { AppDispatch } from "~/store/store";
+import { AppDispatch, RootState } from "~/store/store";
 
 const Header = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
-	const [user, setUser] = useState(() => {
-		const authData = localStorage.getItem("auth");
-		return authData ? JSON.parse(authData).user : null;
-	});
-
+	const user = useSelector((state: RootState) => state.auth.user);
 	const [showLogoutModal, setShowLogoutModal] = useState(false);
 
 	const handleProfileClick = () => {
@@ -38,7 +34,6 @@ const Header = () => {
 		try {
 			const actionResult = await dispatch(logout());
 			if (logout.fulfilled.match(actionResult)) {
-				setUser(null);
 				navigate("/login");
 			} else {
 				console.error("Logout failed");
