@@ -26,7 +26,7 @@ const registerSchema = Yup.object().shape({
 export const RegisterForm: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
-	const { error, loading: isLoading } = useSelector(
+	const { error, isLoading: isLoading } = useSelector(
 		(state: RootState) => state.auth,
 	);
 
@@ -40,7 +40,7 @@ export const RegisterForm: React.FC = () => {
 		trigger,
 	} = useForm({
 		resolver: yupResolver(registerSchema),
-		mode: "onChange",
+		mode: "onBlur",
 	});
 
 	const passwordValue = watch("password");

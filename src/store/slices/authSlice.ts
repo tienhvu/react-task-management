@@ -15,7 +15,7 @@ const initialState: AuthState = {
 	accessToken: null,
 	refreshToken: null,
 	error: null,
-	loading: false,
+	isLoading: false,
 };
 
 export const login = createAsyncThunk<
@@ -69,7 +69,7 @@ const authSlice = createSlice({
 	extraReducers: (builder) => {
 		builder
 			.addCase(login.pending, (state) => {
-				state.loading = true;
+				state.isLoading = true;
 				state.error = null;
 			})
 			.addCase(login.fulfilled, (state, action) => {
@@ -77,24 +77,24 @@ const authSlice = createSlice({
 				state.accessToken = accessToken;
 				state.refreshToken = refreshToken;
 				state.user = data.user;
-				state.loading = false;
+				state.isLoading = false;
 			})
 			.addCase(login.rejected, (state, action) => {
-				state.loading = false;
+				state.isLoading = false;
 				state.error = action.payload ?? "Login failed";
 				state.accessToken = null;
 				state.refreshToken = null;
 				state.user = null;
 			})
 			.addCase(register.pending, (state) => {
-				state.loading = true;
+				state.isLoading = true;
 				state.error = null;
 			})
 			.addCase(register.fulfilled, (state) => {
-				state.loading = false;
+				state.isLoading = false;
 			})
 			.addCase(register.rejected, (state, action) => {
-				state.loading = false;
+				state.isLoading = false;
 				state.error = action.payload ?? "Register failed";
 			})
 			.addCase(logout.fulfilled, (state) => {

@@ -5,5 +5,5 @@ export interface AuthState {
 	accessToken: string | null;
 	refreshToken: string | null;
 	error: string | null;
-	loading: boolean;
+	isLoading: boolean;
 }
