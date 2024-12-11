@@ -26,9 +26,7 @@ const registerSchema = Yup.object().shape({
 export const RegisterForm: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
-	const { error, isLoading: isLoading } = useSelector(
-		(state: RootState) => state.auth,
-	);
+	const { error, isLoading } = useSelector((state: RootState) => state.auth);
 
 	const { showToast } = useToast();
 
