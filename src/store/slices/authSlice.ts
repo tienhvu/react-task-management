@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
 	loginApi,
 	LoginResponse,
@@ -6,17 +6,16 @@ import {
 	registerApi,
 	RegisterResponse,
 } from "~/services/authApi";
-import { Account } from "~/types/interface/Account";
-import { AuthState } from "~/types/interface/AuthState";
-import { RegisterUser } from "~/types/interface/RegisterUser";
-import { User } from "~/types/interface/User";
+import { Account } from "~/types/Account";
+import { AuthState } from "~/types/AuthState";
+import { RegisterUser } from "~/types/RegisterUser";
 
 const initialState: AuthState = {
 	user: null,
 	accessToken: null,
 	refreshToken: null,
 	error: null,
-	loading: false,
+	isLoading: false,
 };
 
 export const login = createAsyncThunk<
@@ -29,7 +28,7 @@ export const login = createAsyncThunk<
 		return response;
 	} catch (error: unknown) {
 		const err = error as { response?: { data?: { message?: string } } };
-		return rejectWithValue(err.response?.data?.message || "Login failed");
+		return rejectWithValue(err.response?.data?.message ?? "Login failed");
 	}
 });
 
@@ -43,7 +42,7 @@ export const register = createAsyncThunk<
 		return response;
 	} catch (error: unknown) {
 		const err = error as { response?: { data?: { message?: string } } };
-		return rejectWithValue(err.response?.data?.message || "Register failed");
+		return rejectWithValue(err.response?.data?.message ?? "Register failed");
 	}
 });
 
@@ -54,7 +53,7 @@ export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
 			await logoutApi();
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
-			return rejectWithValue(err.response?.data?.message || "Logout failed");
+			return rejectWithValue(err.response?.data?.message ?? "Logout failed");
 		}
 	},
 );
@@ -66,53 +65,47 @@ const authSlice = createSlice({
 		clearError: (state) => {
 			state.error = null;
 		},
-		updateUserInAuth: (state, action: PayloadAction<User>) => {
-			state.user = { ...state.user, ...action.payload };
-		},
 	},
 	extraReducers: (builder) => {
 		builder
 			.addCase(login.pending, (state) => {
-				state.loading = true;
+				state.isLoading = true;
 				state.error = null;
 			})
-			.addCase(
-				login.fulfilled,
-				(state, action: PayloadAction<LoginResponse>) => {
-					const { accessToken, refreshToken, data } = action.payload;
-					state.accessToken = accessToken;
-					state.refreshToken = refreshToken;
-					state.user = data.user;
-					state.loading = false;
-				},
-			)
+			.addCase(login.fulfilled, (state, action) => {
+				const { accessToken, refreshToken, data } = action.payload;
+				state.accessToken = accessToken;
+				state.refreshToken = refreshToken;
+				state.user = data.user;
+				state.isLoading = false;
+			})
 			.addCase(login.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload || "Login failed";
+				state.isLoading = false;
+				state.error = action.payload ?? "Login failed";
 				state.accessToken = null;
 				state.refreshToken = null;
 				state.user = null;
 			})
 			.addCase(register.pending, (state) => {
-				state.loading = true;
+				state.isLoading = true;
 				state.error = null;
 			})
 			.addCase(register.fulfilled, (state) => {
-				state.loading = false;
+				state.isLoading = false;
 			})
 			.addCase(register.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload || "Register failed";
+				state.isLoading = false;
+				state.error = action.payload ?? "Register failed";
 			})
 			.addCase(logout.fulfilled, (state) => {
 				state.accessToken = null;
 				state.refreshToken = null;
 				state.user = null;
 				state.error = null;
-				localStorage.removeItem("auth");
 			});
 	},
 });
-
-export const { clearError, updateUserInAuth } = authSlice.actions;
+export const selectIsAuthenticated = (state: { auth: AuthState }) =>
+	!!state.auth.user && !!state.auth.accessToken;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

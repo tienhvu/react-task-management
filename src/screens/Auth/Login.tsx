@@ -7,7 +7,11 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useToast } from "~/components/Toast";
 import { login } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
+<<<<<<< HEAD
 import { Account } from "~/types/interface/Account";
+=======
+import { Account } from "~/types/Account";
+>>>>>>> develop
 import yup from "~/validations/schema/yup";
 
 const loginSchema = yup.object().shape({
