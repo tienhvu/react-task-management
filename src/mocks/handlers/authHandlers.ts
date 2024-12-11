@@ -21,21 +21,6 @@ type SuccessResponse<T> = {
 	refreshToken: string;
 };
 
-type UpdateUserRequest = {
-	username?: string;
-	email?: string;
-	firstName?: string;
-	lastName?: string;
-	gender?: string;
-};
-
-type UpdateUserResponse = {
-	data: {
-		user: Omit<User, "password">;
-	};
-	message: string;
-};
-
 const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
 
 function updateLocalStorage() {
@@ -50,10 +35,6 @@ function generateId(): string {
 	return `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-function isTokenValid(token: string | null): boolean {
-	const activeTokens = JSON.parse(localStorage.getItem("activeTokens") || "{}");
-	return token !== null && activeTokens[token] !== undefined;
-}
 export const authHandlers = [
 	//Register
 	http.post<{}, User, { data: Omit<User, "password"> } | ErrorResponse>(
