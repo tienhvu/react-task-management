@@ -105,6 +105,7 @@ const authSlice = createSlice({
 			});
 	},
 });
-
+export const selectIsAuthenticated = (state: { auth: AuthState }) =>
+	!!state.auth.user && !!state.auth.accessToken;
 export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

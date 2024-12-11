@@ -1,47 +1,41 @@
 import React from "react";
-import { Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { RootState } from "~/store/store";
+import { Navigate } from "react-router-dom";
+import { selectIsAuthenticated } from "~/store/slices/authSlice";
 
 export type RouteConfig = {
 	path: string;
 	component: React.ComponentType;
 	isPrivate?: boolean;
-	layout?: React.ComponentType;
+	layout?: React.ComponentType<{ children: React.ReactNode }>;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
-const ProtectedRoute: React.FC<{
+type Props = {
 	component: React.ComponentType;
 	isPrivate?: boolean;
-}> = ({ component: Component, isPrivate }) => {
-	const { user, accessToken } = useSelector((state: RootState) => state.auth);
-	const isAuthenticated = !!user && !!accessToken;
+	layout?: React.ComponentType<{ children: React.ReactNode }>;
+};
+
+const ProtectedRoute: React.FC<Props> = ({
+	component: Component,
+	isPrivate,
+	layout: Layout,
+}) => {
+	const isAuthenticated = useSelector(selectIsAuthenticated);
 
 	if (isPrivate && !isAuthenticated) {
 		return <Navigate to="/login" replace />;
 	}
 
+	if (Layout) {
+		return (
+			<Layout>
+				<Component />
+			</Layout>
+		);
+	}
+
 	return <Component />;
 };
 
-export const createRoutes = (routes: RouteConfig[]) => {
-	return routes.map((route) => {
-		const Layout = route.layout || React.Fragment;
-
-		return (
-			<Route
-				key={route.path}
-				path={route.path}
-				element={
-					<Layout>
-						<ProtectedRoute
-							component={route.component}
-							isPrivate={route.isPrivate}
-						/>
-					</Layout>
-				}
-			/>
-		);
-	});
-};
+export default ProtectedRoute;
