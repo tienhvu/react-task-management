@@ -10,7 +10,8 @@ export type RouteConfig = {
 	layout?: React.ComponentType;
 };
 
-export const ProtectedRoute: React.FC<{
+// eslint-disable-next-line react-refresh/only-export-components
+const ProtectedRoute: React.FC<{
 	component: React.ComponentType;
 	isPrivate?: boolean;
 }> = ({ component: Component, isPrivate }) => {
