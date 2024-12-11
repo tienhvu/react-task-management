@@ -8,19 +8,19 @@ import * as Yup from "yup";
 import { useToast } from "~/components/Toast";
 import { register as registerAction } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
-import { RegisterUser } from "~/types/interface/RegisterUser";
-import yupConfig from "~/validations/schema/yup";
+import { RegisterUser } from "~/types/RegisterUser";
+import yup from "~/validations/schema/yup";
 
 const registerSchema = Yup.object().shape({
-	username: yupConfig.string().username().default(""),
-	password: yupConfig.string().password().default(""),
+	username: yup.string().username().default(""),
+	password: yup.string().password().default(""),
 	rePassword: Yup.string()
 		.oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp")
 		.required("Xác nhận mật khẩu không được để trống"),
-	email: yupConfig.string().emailTest().default(""),
-	firstName: yupConfig.string().firstName().default(""),
-	lastName: yupConfig.string().lastName().default(""),
-	gender: yupConfig.string().gender().default(""),
+	email: yup.string().emailTest().default(""),
+	firstName: yup.string().firstName().default(""),
+	lastName: yup.string().lastName().default(""),
+	gender: yup.string().gender().default(""),
 });
 
 export const RegisterForm: React.FC = () => {
@@ -38,7 +38,6 @@ export const RegisterForm: React.FC = () => {
 		formState: { errors, isValid },
 		watch,
 		trigger,
-		reset,
 	} = useForm({
 		resolver: yupResolver(registerSchema),
 		mode: "onChange",
@@ -57,7 +56,6 @@ export const RegisterForm: React.FC = () => {
 		const actionResult = await dispatch(registerAction(data));
 		if (registerAction.fulfilled.match(actionResult)) {
 			dispatch({ type: "auth/clearError" });
-			reset();
 			showToast("Đăng ký thành công!");
 			navigate("/login");
 		}

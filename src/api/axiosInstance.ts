@@ -32,6 +32,10 @@ axiosInstance.interceptors.response.use(
 		return response;
 	},
 	(error) => {
+		if (error.response?.status === 401) {
+			console.error("Token hết hạn hoặc không hợp lệ");
+			localStorage.removeItem("auth");
+		}
 		return Promise.reject(error);
 	},
 );

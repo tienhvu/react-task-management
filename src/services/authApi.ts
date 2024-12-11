@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
 import axiosInstance from "~/api/axiosInstance";
-import { Account } from "~/types/interface/Account";
-import { RegisterUser } from "~/types/interface/RegisterUser";
-import { User } from "~/types/interface/User";
+import { Account } from "~/types/Account";
+import { RegisterUser } from "~/types/RegisterUser";
+import { User } from "~/types/User";
 
 export interface LoginResponse {
 	accessToken: string;
