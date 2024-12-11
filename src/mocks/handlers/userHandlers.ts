@@ -26,7 +26,7 @@ function updateLocalStorage() {
 	localStorage.setItem("users", JSON.stringify(users));
 }
 
-export const authHandlers = [
+export const userHandlers = [
 	// Update user
 	http.patch<
 		{ userId: string },

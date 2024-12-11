@@ -7,12 +7,19 @@ import PrivateLayout from "~/layouts/PrivateLayout";
 import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
 import Task from "~/screens/Tasks/Task";
+import Profile from "~/screens/User/Profile";
 
 const AppRoutes: React.FC = () => {
 	const routeConfigs: RouteConfig[] = [
 		{
 			path: "/tasks",
 			component: Task,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: "/profile",
+			component: Profile,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},

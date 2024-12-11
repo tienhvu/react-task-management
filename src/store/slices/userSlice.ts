@@ -5,36 +5,41 @@ import {
 	UpdateUserRequest,
 	UpdateUserResponse,
 } from "~/services/userApi";
-import { User } from "~/types/interface/User";
+import { User } from "~/types/User";
+import { AppDispatch } from "../store";
+import { updateUserInAuth } from "./authSlice";
 
 export interface UserState {
 	user: Partial<User> | null;
 	error: string | null;
-	loading: boolean;
+	isLoading: boolean;
 }
 
 const initialState: UserState = {
 	user: null,
 	error: null,
-	loading: false,
+	isLoading: false,
 };
 
 export const updateUser = createAsyncThunk<
 	UpdateUserResponse,
 	{ userId: string; userData: UpdateUserRequest },
-	{ rejectValue: string }
->("user/update", async ({ userId, userData }, { rejectWithValue }) => {
-	try {
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		const response = await updateUserApi(userId, userData);
-		return response;
-	} catch (error: unknown) {
-		const err = error as { response?: { data?: { message?: string } } };
-		const errorMessage =
-			err.response?.data?.message || "Cập nhật người dùng thất bại";
-		return rejectWithValue(errorMessage);
-	}
-});
+	{ rejectValue: string; dispatch: AppDispatch }
+>(
+	"user/update",
+	async ({ userId, userData }, { rejectWithValue, dispatch }) => {
+		try {
+			const response = await updateUserApi(userId, userData);
+			dispatch(updateUserInAuth(response.data.user));
+			return response;
+		} catch (error: unknown) {
+			const err = error as { response?: { data?: { message?: string } } };
+			const errorMessage =
+				err.response?.data?.message ?? "Cập nhật người dùng thất bại";
+			return rejectWithValue(errorMessage);
+		}
+	},
+);
 
 export const deleteUser = createAsyncThunk<
 	void,
@@ -48,7 +53,7 @@ export const deleteUser = createAsyncThunk<
 	} catch (error: unknown) {
 		const err = error as { response?: { data?: { message?: string } } };
 		const errorMessage =
-			err.response?.data?.message || "Xóa người dùng thất bại";
+			err.response?.data?.message ?? "Xóa người dùng thất bại";
 		return rejectWithValue(errorMessage);
 	}
 });
@@ -64,41 +69,29 @@ const userSlice = createSlice({
 	extraReducers: (builder) => {
 		builder
 			.addCase(updateUser.pending, (state) => {
-				state.loading = true;
+				state.isLoading = true;
 				state.error = null;
 			})
 			.addCase(updateUser.fulfilled, (state, action) => {
-				state.loading = false;
+				state.isLoading = false;
 				state.user = action.payload.data.user;
-
-				const authData = localStorage.getItem("auth");
-				if (authData) {
-					const parsedAuthData = JSON.parse(authData);
-					localStorage.setItem(
-						"auth",
-						JSON.stringify({
-							...parsedAuthData,
-							user: action.payload.data.user,
-						}),
-					);
-				}
 			})
 			.addCase(updateUser.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload || "Cập nhật người dùng thất bại";
+				state.isLoading = false;
+				state.error = action.payload ?? "Cập nhật người dùng thất bại";
 			})
 
 			.addCase(deleteUser.pending, (state) => {
-				state.loading = true;
+				state.isLoading = true;
 				state.error = null;
 			})
 			.addCase(deleteUser.fulfilled, (state) => {
-				state.loading = false;
+				state.isLoading = false;
 				state.user = null;
 			})
 			.addCase(deleteUser.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload || "Xóa người dùng thất bại";
+				state.isLoading = false;
+				state.error = action.payload ?? "Xóa người dùng thất bại";
 			});
 	},
 });
