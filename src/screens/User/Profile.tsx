@@ -15,9 +15,14 @@ import * as Yup from "yup";
 import ResetPasswordForm from "~/components/ResetPasswordForm";
 import { useToast } from "~/components/Toast";
 import { UpdateUserRequest } from "~/services/userApi";
-import { updateUser } from "~/store/slices/userSlice";
+import {
+	refreshToken,
+	resetPassword,
+	updateUser,
+} from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import yup from "~/validations/schema/yup";
+
 const profileUpdateSchema = Yup.object().shape({
 	username: yup.string().username().optional(),
 	email: yup.string().emailTest().optional(),
@@ -29,14 +34,19 @@ const profileUpdateSchema = Yup.object().shape({
 const Profile = () => {
 	const { showToast } = useToast();
 	const dispatch = useDispatch<AppDispatch>();
-	const { isLoading, error } = useSelector((state: RootState) => state.user);
-	const { user } = useSelector((state: RootState) => state.auth);
+	const {
+		isLoading,
+		error,
+		user,
+		refreshToken: currentRefreshToken,
+	} = useSelector((state: RootState) => state.auth);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
+	const [isChangingPassword, setIsChangingPassword] = useState(false);
 	const {
 		register: registerProfile,
 		handleSubmit: handleProfileUpdate,
-		formState: { errors: profileErrors, isDirty },
+		formState: { errors: profileErrors, isDirty, isValid },
 		reset: resetProfileForm,
 	} = useForm({
 		resolver: yupResolver(profileUpdateSchema),
@@ -51,14 +61,18 @@ const Profile = () => {
 
 	// Handle Profile Update
 	const onProfileUpdate = async (data: UpdateUserRequest) => {
-		if (!user?.id) return;
-		await dispatch(
+		if (!user || !user.id) return;
+		const result = await dispatch(
 			updateUser({
 				userId: user.id,
 				userData: data,
 			}),
-		).unwrap();
-		showToast("Cập nhật người dùng thành công!");
+		);
+		if (updateUser.fulfilled.match(result)) {
+			showToast("Cập nhật người dùng thành công!");
+		} else {
+			showToast("Cập nhật người dùng thất bại!", "danger");
+		}
 		setIsEditing(false);
 	};
 
@@ -68,27 +82,51 @@ const Profile = () => {
 		}
 	}, [user, resetProfileForm]);
 
-	//Handle reset password form
+	const handleBackClick = () => {
+		setIsChangingPassword(false);
+	};
+
 	const onPasswordReset = async (passwordData: {
 		currentPassword: string;
 		newPassword: string;
 		confirmPassword: string;
 	}) => {
+		if (!user || !user.id) return;
 		try {
-			console.log("Password reset data:", passwordData);
+			const resetResult = await dispatch(
+				resetPassword({
+					userId: user.id,
+					oldPassword: passwordData.currentPassword,
+					newPassword: passwordData.newPassword,
+				}),
+			);
+
+			if (resetPassword.fulfilled.match(resetResult)) {
+				if (currentRefreshToken) {
+					await dispatch(
+						refreshToken({
+							refreshToken: currentRefreshToken,
+							userId: user.id,
+						}),
+					).unwrap();
+				}
+
+				showToast("Đổi mật khẩu thành công!");
+				setIsChangingPassword(false);
+			}
 		} catch (err) {
+			showToast("Đổi mật khẩu thất bại!", "danger");
 			console.error("Password reset failed", err);
 		}
 	};
 
-	if (!user) {
+	if (!user || !user.id) {
 		return (
 			<Container className="mt-5">
 				<Alert variant="warning">Không tìm thấy thông tin người dùng</Alert>
 			</Container>
 		);
 	}
-
 	return (
 		<Container className="mt-5">
 			<Row className="justify-content-md-center">
@@ -98,71 +136,78 @@ const Profile = () => {
 						<Card.Body>
 							{error && <Alert variant="danger">{error}</Alert>}
 
-							<Form onSubmit={handleProfileUpdate(onProfileUpdate)}>
-								{!isEditing ? (
-									<>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												ID:
-											</Form.Label>
-											<Col sm="8">{user.id}</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Tên Đăng Nhập:
-											</Form.Label>
-											<Col sm="8">{user.username}</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Email:
-											</Form.Label>
-											<Col sm="8">{user.email}</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Họ:
-											</Form.Label>
-											<Col sm="8">{user.lastName}</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Tên:
-											</Form.Label>
-											<Col sm="8">{user.firstName}</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Giới Tính:
-											</Form.Label>
-											<Col sm="8">{user.gender}</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Ngày Tạo:
-											</Form.Label>
-											<Col sm="8">
-												{user.createdAt
-													? new Date(user.createdAt).toLocaleString()
-													: "N/A"}
-											</Col>
-										</Form.Group>
-										<Form.Group as={Row} className="mb-3">
-											<Form.Label column sm="4">
-												Ngày Cập Nhật:
-											</Form.Label>
-											<Col sm="8">
-												{user.updatedAt
-													? new Date(user.updatedAt).toLocaleString()
-													: "N/A"}
-											</Col>
-										</Form.Group>
-										<Button variant="primary" onClick={handleEditClick}>
-											Chỉnh Sửa Thông Tin
-										</Button>
-									</>
-								) : (
-									<>
+							{!isEditing && !isChangingPassword ? (
+								<>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											ID:
+										</Form.Label>
+										<Col sm="8">{user.id}</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Tên Đăng Nhập:
+										</Form.Label>
+										<Col sm="8">{user.username}</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Email:
+										</Form.Label>
+										<Col sm="8">{user.email}</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Họ:
+										</Form.Label>
+										<Col sm="8">{user.lastName}</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Tên:
+										</Form.Label>
+										<Col sm="8">{user.firstName}</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Giới Tính:
+										</Form.Label>
+										<Col sm="8">{user.gender}</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Ngày Tạo:
+										</Form.Label>
+										<Col sm="8">
+											{user.createdAt
+												? new Date(user.createdAt).toLocaleString()
+												: "N/A"}
+										</Col>
+									</Form.Group>
+									<Form.Group as={Row} className="mb-3">
+										<Form.Label column sm="4">
+											Ngày Cập Nhật:
+										</Form.Label>
+										<Col sm="8">
+											{user.updatedAt
+												? new Date(user.updatedAt).toLocaleString()
+												: "N/A"}
+										</Col>
+									</Form.Group>
+									<Button variant="primary" onClick={handleEditClick}>
+										Chỉnh Sửa Thông Tin
+									</Button>
+									<Button
+										className="ms-2"
+										variant="success"
+										onClick={() => setIsChangingPassword(true)}
+									>
+										Thay Đổi Mật Khẩu
+									</Button>
+								</>
+							) : isEditing ? (
+								<>
+									<Form onSubmit={handleProfileUpdate(onProfileUpdate)}>
 										<Form.Group as={Row} className="mb-3">
 											<Form.Label column sm="4">
 												Tên Đăng Nhập
@@ -232,7 +277,9 @@ const Profile = () => {
 													{...registerProfile("gender")}
 													isInvalid={!!profileErrors.gender}
 												>
-													<option value="">Chọn giới tính</option>
+													<option value="" disabled>
+														Chọn giới tính
+													</option>
 													<option value="Male">Nam</option>
 													<option value="Female">Nữ</option>
 													<option value="Other">Khác</option>
@@ -246,7 +293,7 @@ const Profile = () => {
 											<Button
 												variant="success"
 												type="submit"
-												disabled={isLoading || !isDirty}
+												disabled={isLoading || !isDirty || !isValid}
 											>
 												{isLoading ? "Đang lưu..." : "Lưu Thay Đổi"}
 											</Button>
@@ -260,21 +307,16 @@ const Profile = () => {
 												Hủy
 											</Button>
 										</div>
-									</>
-								)}
-							</Form>
-						</Card.Body>
-					</Card>
-
-					{/* Phần Reset Mật Khẩu */}
-					<Card className="mt-4">
-						<Card.Header as="h3">Đặt Lại Mật Khẩu</Card.Header>
-						<Card.Body>
-							<ResetPasswordForm
-								onPasswordReset={onPasswordReset}
-								isResettingPassword={isResettingPassword}
-								onResettingPasswordChange={setIsResettingPassword}
-							/>
+									</Form>
+								</>
+							) : isChangingPassword ? (
+								<ResetPasswordForm
+									onPasswordReset={onPasswordReset}
+									isResettingPassword={isResettingPassword}
+									onResettingPasswordChange={setIsResettingPassword}
+									onBackClick={handleBackClick}
+								/>
+							) : null}
 						</Card.Body>
 					</Card>
 				</Col>

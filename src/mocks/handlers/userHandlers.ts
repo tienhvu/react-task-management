@@ -28,7 +28,7 @@ function updateLocalStorage() {
 
 export const userHandlers = [
 	// Update user
-	http.patch<
+	http.put<
 		{ userId: string },
 		UpdateUserRequest,
 		UpdateUserResponse | ErrorResponse

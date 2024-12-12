@@ -1,18 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-import { User } from "~/types/User";
 import { http, HttpResponse } from "msw";
+import { v4 as uuidv4 } from "uuid";
 import { baseURL } from "~/api/axiosInstance";
 import { ErrorResponse } from "~/types/ErrorResponse";
-import { v4 as uuidv4 } from "uuid";
+import { User } from "~/types/User";
 
 type LoginResponse = {
 	user: Omit<User, "password">;
+};
+type AuthResponse = {
+	accessToken: string;
+	refreshToken: string;
 };
 
 type LoginRequestBody = {
 	username: string;
 	password: string;
+};
+
+export type ResetPasswordRequestBody = {
+	userId: string;
+	oldPassword: string;
+	newPassword: string;
 };
 
 type SuccessResponse<T> = {
@@ -131,10 +141,145 @@ export const authHandlers = [
 	}),
 
 	// Logout
-	http.post(`${baseURL}/auth/logout`, async ({ request }) => {
+	http.post(`${baseURL}/auth/logout`, async () => {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		return HttpResponse.json(null, {
 			status: 200,
 		});
 	}),
+
+	//Reset password
+	http.post<
+		{},
+		ResetPasswordRequestBody,
+		SuccessResponse<{ message: string }> | ErrorResponse
+	>(`${baseURL}/auth/reset-password`, async ({ request }) => {
+		const { userId, oldPassword, newPassword } = await request.json();
+
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+
+		if (!userId || !oldPassword || !newPassword) {
+			return HttpResponse.json(
+				{ message: "Missing parameters", statusCode: 400 },
+				{ status: 400 },
+			);
+		}
+
+		if (oldPassword === newPassword) {
+			return HttpResponse.json(
+				{
+					message: "The new password cannot be the same as the old password",
+					statusCode: 400,
+				},
+				{ status: 400 },
+			);
+		}
+
+		const user = users.find((user) => user.id === userId);
+
+		if (!user) {
+			return HttpResponse.json(
+				{ message: "User not found", statusCode: 404 },
+				{ status: 404 },
+			);
+		}
+
+		if (user.password !== oldPassword) {
+			return HttpResponse.json(
+				{ message: "Incorrect old password", statusCode: 400 },
+				{ status: 400 },
+			);
+		}
+
+		user.password = newPassword;
+		user.updatedAt = new Date();
+
+		updateLocalStorage();
+
+		return HttpResponse.json(
+			{ message: "Password updated successfully", statusCode: 200 },
+			{ status: 200 },
+		);
+	}),
+
+	// Refresh Token
+	http.post<
+		{},
+		{ refreshToken: string; userId: string },
+		SuccessResponse<LoginResponse> | ErrorResponse
+	>(`${baseURL}/auth/refresh-token`, async ({ request }) => {
+		const { refreshToken, userId } = await request.json();
+		if (!refreshToken) {
+			return HttpResponse.json(
+				{
+					message: "Refresh token is required",
+					statusCode: 400,
+				},
+				{ status: 400 },
+			);
+		}
+
+		const user = users.find((user) => user.id === userId);
+
+		if (!user) {
+			return HttpResponse.json(
+				{
+					message: "User not found",
+					statusCode: 400,
+				},
+				{ status: 400 },
+			);
+		}
+
+		const newAccessToken = generateRandomToken();
+		const newRefreshToken = generateRandomToken();
+
+		updateLocalStorage();
+
+		const { password, ...userWithoutPassword } = user;
+
+		return HttpResponse.json(
+			{
+				accessToken: newAccessToken,
+				refreshToken: newRefreshToken,
+				data: {
+					user: userWithoutPassword,
+				},
+			},
+			{ status: 200 },
+		);
+	}),
+
+	// Logout - Xóa thông tin đăng nhập
+	http.post<{}, { userId: string }, AuthResponse | ErrorResponse>(
+		`${baseURL}/auth/delete`,
+		async ({ request }) => {
+			const { userId } = await request.json();
+			await new Promise((resolve) => setTimeout(resolve, 2000));
+
+			const user = users.find((user) => user.id === userId);
+			if (!user) {
+				return HttpResponse.json(
+					{
+						message: "User not found",
+						statusCode: 400,
+					},
+					{ status: 400 },
+				);
+			}
+
+			const newAccessToken = "";
+			const newRefreshToken = "";
+
+			updateLocalStorage();
+
+			return HttpResponse.json(
+				{
+					accessToken: newAccessToken,
+					refreshToken: newRefreshToken,
+				},
+				{ status: 200 },
+			);
+		},
+	),
 ];

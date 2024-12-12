@@ -1,5 +1,7 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { Outlet } from "react-router-dom";
+import { injectDispatch } from "~/api/axiosInstance";
 import Sidebar from "~/components/SideBar/SideBar";
 
 interface LayoutProps {
@@ -7,6 +9,11 @@ interface LayoutProps {
 }
 
 const PrivateLayout: React.FC<LayoutProps> = ({ children }) => {
+	const dispatch = useDispatch();
+
+	useEffect(() => {
+		injectDispatch(dispatch);
+	}, [dispatch]);
 	return (
 		<div className="d-flex">
 			<Sidebar />

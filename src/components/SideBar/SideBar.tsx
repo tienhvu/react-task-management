@@ -4,7 +4,8 @@ import { BoxArrowRight, PersonCircle } from "react-bootstrap-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import profileImage from "~/assets/profile.png";
-import { logout, selectIsAuthenticated } from "~/store/slices/authSlice";
+import useLoggedIn from "~/hook/useLoggedIn";
+import { logout } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { profileStyle, sidebarStyle } from "./style";
 
@@ -14,7 +15,7 @@ const Sidebar: React.FC = () => {
 	const location = useLocation();
 	const auth = useSelector((state: RootState) => state.auth);
 	const user = auth.user;
-	const isLoggedIn = useSelector(selectIsAuthenticated);
+	const isLoggedIn = useLoggedIn();
 	const [isOpenLogoutModal, setIsOpenLogoutModal] = useState(false);
 
 	const getNavLinks = () => {

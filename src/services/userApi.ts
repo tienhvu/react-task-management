@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import axiosInstance from "~/api/axiosInstance";
-import { User } from "~/types/interface/User";
+import { User } from "~/types/User";
 
 export interface UpdateUserResponse {
 	data: {
@@ -23,7 +23,7 @@ export const updateUserApi = (
 	userData: UpdateUserRequest,
 ): Promise<UpdateUserResponse> => {
 	const url = `/users/${userId}`;
-	return axiosInstance.patch(url, userData);
+	return axiosInstance.put(url, userData);
 };
 
 export const deleteUserApi = (userId: string): Promise<AxiosResponse<null>> => {
