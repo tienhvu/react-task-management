@@ -13,6 +13,7 @@ import storage from "redux-persist/lib/storage";
 
 import authReducer from "./slices/authSlice";
 import userReducer from "./slices/userSlice";
+import { setupInterceptors } from "~/api/axiosInstance";
 const authPersistConfig = {
 	key: "auth",
 	storage,
@@ -33,7 +34,7 @@ export const store = configureStore({
 			},
 		}),
 });
-
+setupInterceptors(store.dispatch);
 export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
