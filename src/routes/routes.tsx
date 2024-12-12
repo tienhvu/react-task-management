@@ -6,6 +6,7 @@ import ProtectedRoute, { RouteConfig } from "~/guards/RouteConfig";
 import PrivateLayout from "~/layouts/PrivateLayout";
 import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
+import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
 import Task from "~/screens/Tasks/Task";
 import Profile from "~/screens/User/Profile";
 
@@ -20,6 +21,12 @@ const AppRoutes: React.FC = () => {
 		{
 			path: "/profile",
 			component: Profile,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: "/categories",
+			component: CategoryPage,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},

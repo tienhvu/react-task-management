@@ -13,6 +13,7 @@ import storage from "redux-persist/lib/storage";
 
 import authReducer from "./slices/authSlice";
 import userReducer from "./slices/userSlice";
+import categoryReducer from "./slices/categorySlice";
 import { setupInterceptors } from "~/api/axiosInstance";
 const authPersistConfig = {
 	key: "auth",
@@ -26,6 +27,7 @@ export const store = configureStore({
 	reducer: {
 		auth: persistedAuthReducer,
 		user: userReducer,
+		category: categoryReducer,
 	},
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
