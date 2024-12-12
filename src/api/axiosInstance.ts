@@ -1,4 +1,6 @@
 import axios from "axios";
+import { resetAuthState } from "~/store/slices/authSlice";
+import { store } from "~/store/store";
 
 export const baseURL = "https://www.task-manager.api.mvn-training.com";
 
@@ -35,7 +37,7 @@ axiosInstance.interceptors.response.use(
 		// TODO: edit remove auth when not authorize
 		if (error.response?.status === 401) {
 			console.error("Token hết hạn hoặc không hợp lệ");
-			localStorage.removeItem("auth");
+			store.dispatch(resetAuthState());
 		}
 		return Promise.reject(error);
 	},

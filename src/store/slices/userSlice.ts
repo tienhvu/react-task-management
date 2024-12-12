@@ -80,7 +80,6 @@ const userSlice = createSlice({
 				state.isLoading = false;
 				state.error = action.payload ?? "Cập nhật người dùng thất bại";
 			})
-
 			.addCase(deleteUser.pending, (state) => {
 				state.isLoading = true;
 				state.error = null;

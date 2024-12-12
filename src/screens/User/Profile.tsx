@@ -35,7 +35,7 @@ const Profile = () => {
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
 	const {
 		register: registerProfile,
-		handleSubmit: handleProfileSubmit,
+		handleSubmit: handleProfileUpdate,
 		formState: { errors: profileErrors, isDirty },
 		reset: resetProfileForm,
 	} = useForm({
@@ -52,15 +52,13 @@ const Profile = () => {
 	// Handle Profile Update
 	const onProfileUpdate = async (data: UpdateUserRequest) => {
 		if (!user?.id) return;
-		const result = await dispatch(
+		await dispatch(
 			updateUser({
 				userId: user.id,
 				userData: data,
 			}),
 		).unwrap();
-		if (updateUser.fulfilled.match(result)) {
-			showToast("Cập nhật người dùng thành công!");
-		}
+		showToast("Cập nhật người dùng thành công!");
 		setIsEditing(false);
 	};
 
@@ -100,7 +98,7 @@ const Profile = () => {
 						<Card.Body>
 							{error && <Alert variant="danger">{error}</Alert>}
 
-							<Form onSubmit={handleProfileSubmit(onProfileUpdate)}>
+							<Form onSubmit={handleProfileUpdate(onProfileUpdate)}>
 								{!isEditing ? (
 									<>
 										<Form.Group as={Row} className="mb-3">
