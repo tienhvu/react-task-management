@@ -13,6 +13,7 @@ import storage from "redux-persist/lib/storage";
 
 import authReducer from "./slices/authSlice";
 import categoryReducer from "./slices/categorySlice";
+
 const authPersistConfig = {
 	key: "auth",
 	storage,

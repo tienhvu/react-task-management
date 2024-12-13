@@ -23,7 +23,7 @@ const Sidebar: React.FC = () => {
 			return [
 				{ key: "/", label: "Trang chủ" },
 				{ key: "/tasks", label: "Task Manager" },
-				{ key: "/categories", label: "Category Manager" },
+				{ key: "/categories", label: "Category" },
 			];
 		} else {
 			return [

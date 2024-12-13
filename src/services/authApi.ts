@@ -1,7 +1,11 @@
 import { AxiosResponse } from "axios";
 import axiosInstance from "~/api/axiosInstance";
-import { ResetPasswordRequestBody } from "~/mocks/handlers/authHandlers";
+import {
+	AuthResponse,
+	ResetPasswordRequestBody,
+} from "~/mocks/handlers/authHandlers";
 import { Account } from "~/types/Account";
+import { ErrorResponse } from "~/types/ErrorResponse";
 import { RegisterUser } from "~/types/RegisterUser";
 import { User } from "~/types/User";
 
@@ -49,7 +53,7 @@ export const resetPasswordApi = (
 	reset: ResetPasswordRequestBody,
 ): Promise<ResetPasswordResponse> => {
 	const url = "/auth/reset-password";
-	return axiosInstance.post(url, reset);
+	return axiosInstance.patch(url, reset);
 };
 
 export const refreshTokenApi = (
@@ -59,10 +63,12 @@ export const refreshTokenApi = (
 
 	return axiosInstance.post(url, req);
 };
-
 export const deleteLoginInfoApi = (
 	userId: string,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<AuthResponse | ErrorResponse>> => {
 	const url = `/auth/delete`;
-	return axiosInstance.post(url, { userId });
+
+	return axiosInstance.delete(url, {
+		data: { userId },
+	});
 };

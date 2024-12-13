@@ -30,6 +30,7 @@ import {
 	CreateCategoryRequest,
 	UpdateCategoryRequest,
 } from "~/services/categoryApi";
+import useDebounce from "~/hook/useDebounce";
 
 const categorySchema = Yup.object().shape({
 	name: Yup.string()
@@ -71,6 +72,21 @@ const CategoryPage = () => {
 		null,
 	);
 
+	//Handle search and fetch data
+	const [searchTerm, setSearchTerm] = useState("");
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
+	useEffect(() => {
+		if (debouncedSearchTerm) {
+			dispatch(searchCategories(debouncedSearchTerm));
+		} else {
+			dispatch(getCategories());
+		}
+	}, [debouncedSearchTerm, dispatch]);
+
+	const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchTerm(e.target.value);
+	};
+
 	useEffect(() => {
 		if (selectedCategory) {
 			reset({
@@ -82,11 +98,6 @@ const CategoryPage = () => {
 		}
 	}, [selectedCategory, reset]);
 
-	// Fetch categories on component mount
-	useEffect(() => {
-		dispatch(getCategories());
-	}, [dispatch]);
-
 	const isFormModified = () => {
 		const currentValues = watch();
 		return (
@@ -95,22 +106,6 @@ const CategoryPage = () => {
 					selectedCategory.description !== currentValues.description)) ||
 			(!selectedCategory && (currentValues.name || currentValues.description))
 		);
-	};
-
-	const handleSuccessfulAction = () => {
-		showToast(
-			selectedCategory
-				? "Cập nhật danh mục thành công"
-				: "Thêm danh mục thành công",
-		);
-		dispatch(selectCategory(null));
-		reset(defaultFormValues);
-		setIsSubmitting(false);
-	};
-
-	const handleErrorAction = (errorMessage: string) => {
-		showToast(errorMessage, "danger");
-		setIsSubmitting(false);
 	};
 
 	const handleAddCategory = async (data: CreateCategoryRequest) => {
@@ -158,10 +153,6 @@ const CategoryPage = () => {
 		}
 	};
 
-	const handleSearch = async (query: string) => {
-		await dispatch(searchCategories(query));
-	};
-
 	const handleSelectCategory = (category: Category) => {
 		dispatch(selectCategory(category));
 	};
@@ -169,6 +160,23 @@ const CategoryPage = () => {
 	const handleCancelEdit = () => {
 		dispatch(selectCategory(null));
 		reset(defaultFormValues);
+	};
+
+	//Functions handle notification
+	const handleSuccessfulAction = () => {
+		showToast(
+			selectedCategory
+				? "Cập nhật danh mục thành công"
+				: "Thêm danh mục thành công",
+		);
+		dispatch(selectCategory(null));
+		reset(defaultFormValues);
+		setIsSubmitting(false);
+	};
+
+	const handleErrorAction = (errorMessage: string) => {
+		showToast(errorMessage, "danger");
+		setIsSubmitting(false);
 	};
 
 	return (
@@ -245,19 +253,22 @@ const CategoryPage = () => {
 							<Form.Control
 								type="text"
 								placeholder="Tìm kiếm danh mục"
-								onChange={(e) => handleSearch(e.target.value)}
+								value={searchTerm}
+								onChange={handleSearch}
 							/>
 							<Table striped bordered hover className="mt-3">
 								<thead>
 									<tr>
+										<th>STT</th>
 										<th>Tên</th>
 										<th>Mô Tả</th>
-										<th>Thao Tác</th>
+										<th>Hành động</th>
 									</tr>
 								</thead>
 								<tbody>
-									{categories.map((category) => (
+									{categories.map((category, index) => (
 										<tr key={category.id}>
+											<td>{index + 1}</td>
 											<td>{category.name}</td>
 											<td>{category.description}</td>
 											<td>

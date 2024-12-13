@@ -9,7 +9,7 @@ import { User } from "~/types/User";
 type LoginResponse = {
 	user: Omit<User, "password">;
 };
-type AuthResponse = {
+export type AuthResponse = {
 	accessToken: string;
 	refreshToken: string;
 };
@@ -149,7 +149,7 @@ export const authHandlers = [
 	}),
 
 	//Reset password
-	http.post<
+	http.patch<
 		{},
 		ResetPasswordRequestBody,
 		SuccessResponse<{ message: string }> | ErrorResponse
@@ -251,7 +251,7 @@ export const authHandlers = [
 	}),
 
 	// Logout - Xóa thông tin đăng nhập
-	http.post<{}, { userId: string }, AuthResponse | ErrorResponse>(
+	http.delete<{}, { userId: string }, AuthResponse | ErrorResponse>(
 		`${baseURL}/auth/delete`,
 		async ({ request }) => {
 			const { userId } = await request.json();

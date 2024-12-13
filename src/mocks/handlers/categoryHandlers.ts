@@ -126,8 +126,6 @@ export const categoryHandlers = [
 		`${baseURL}/categories/:categoryId`,
 		async ({ params }) => {
 			const { categoryId } = params;
-			await new Promise((resolve) => setTimeout(resolve, 2000));
-
 			const categoryIndex = categories.findIndex(
 				(category) => category.id === categoryId,
 			);
