@@ -21,6 +21,7 @@ export interface ResetPasswordResponse {
 	message: string;
 	statusCode: number;
 }
+
 export interface RegisterResponse {
 	user: User;
 	message: string;

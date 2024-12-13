@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import profileImage from "~/assets/profile.png";
 import useLoggedIn from "~/hook/useLoggedIn";
+
 import { logout } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { profileStyle, sidebarStyle } from "./style";

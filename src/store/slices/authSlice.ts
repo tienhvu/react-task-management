@@ -159,7 +159,7 @@ const authSlice = createSlice({
 				state.refreshToken = null;
 				state.user = null;
 			})
-
+    
 			// Register
 			.addCase(register.pending, (state) => {
 				state.isLoading = true;
@@ -172,7 +172,7 @@ const authSlice = createSlice({
 				state.isLoading = false;
 				state.error = action.payload ?? "Register failed";
 			})
-
+    
 			// Update User
 			.addCase(updateUser.pending, (state) => {
 				state.isLoading = true;

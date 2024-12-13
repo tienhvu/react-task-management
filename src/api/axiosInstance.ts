@@ -1,6 +1,6 @@
 import axios from "axios";
 import { resetAuthState } from "~/store/slices/authSlice";
-import { getInjectedDispatch } from "~/utils/injectDispatch"; // Import hàm lấy dispatch
+import { getInjectedDispatch } from "~/utils/injectDispatch";
 
 export const baseURL = "https://www.task-manager.api.mvn-training.com";
 
