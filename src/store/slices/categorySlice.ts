@@ -6,6 +6,7 @@ import {
 	searchCategoriesApi,
 	CreateCategoryRequest,
 	UpdateCategoryRequest,
+	getCategoriesApi,
 } from "~/services/categoryApi";
 
 import { Category } from "~/types/Category";
@@ -34,7 +35,7 @@ export const addCategory = createAsyncThunk(
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(
-				err.response?.data?.message || "Add category failed",
+				err.response?.data?.message ?? "Add category failed",
 			);
 		}
 	},
@@ -55,7 +56,7 @@ export const updateCategory = createAsyncThunk(
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(
-				err.response?.data?.message || "Update category failed",
+				err.response?.data?.message ?? "Update category failed",
 			);
 		}
 	},
@@ -70,7 +71,7 @@ export const deleteCategory = createAsyncThunk(
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(
-				err.response?.data?.message || "Delete category failed",
+				err.response?.data?.message ?? "Delete category failed",
 			);
 		}
 	},
@@ -85,13 +86,27 @@ export const searchCategories = createAsyncThunk(
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(
-				err.response?.data?.message || "Search categories failed",
+				err.response?.data?.message ?? "Search categories failed",
 			);
 		}
 	},
 );
 
-// Slice
+export const getCategories = createAsyncThunk(
+	"category/getAll",
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await getCategoriesApi();
+			return response.data;
+		} catch (error: unknown) {
+			const err = error as { response?: { data?: { message?: string } } };
+			return rejectWithValue(
+				err.response?.data?.message ?? "Get categories failed",
+			);
+		}
+	},
+);
+
 const categorySlice = createSlice({
 	name: "category",
 	initialState,
@@ -134,20 +149,19 @@ const categorySlice = createSlice({
 				state.isLoading = false;
 				state.error = action.payload as string;
 			})
+
 			.addCase(deleteCategory.pending, (state) => {
 				state.isLoading = true;
 				state.error = null;
 			})
-			.addCase(deleteCategory.fulfilled, (state, action) => {
+			.addCase(deleteCategory.fulfilled, (state) => {
 				state.isLoading = false;
-				state.categories = state.categories.filter(
-					(category) => category.id !== action.payload,
-				);
 			})
 			.addCase(deleteCategory.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
 			})
+
 			.addCase(searchCategories.pending, (state) => {
 				state.isLoading = true;
 				state.error = null;
@@ -157,6 +171,19 @@ const categorySlice = createSlice({
 				state.categories = action.payload;
 			})
 			.addCase(searchCategories.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.payload as string;
+			})
+
+			.addCase(getCategories.pending, (state) => {
+				state.isLoading = true;
+				state.error = null;
+			})
+			.addCase(getCategories.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.categories = action.payload;
+			})
+			.addCase(getCategories.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
 			});

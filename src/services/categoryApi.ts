@@ -1,5 +1,4 @@
 import axiosInstance from "~/api/axiosInstance";
-import { AxiosResponse } from "axios";
 import { Category } from "~/types/Category";
 
 export interface CreateCategoryRequest {
@@ -40,9 +39,7 @@ export const updateCategoryApi = (
 };
 
 // Delete category
-export const deleteCategoryApi = (
-	categoryId: string,
-): Promise<AxiosResponse<null>> => {
+export const deleteCategoryApi = (categoryId: string): Promise<void> => {
 	const url = `/categories/${categoryId}`;
 	return axiosInstance.delete(url);
 };
@@ -52,5 +49,10 @@ export const searchCategoriesApi = (
 	query: string,
 ): Promise<SearchCategoryResponse> => {
 	const url = `/categories?query=${encodeURIComponent(query)}`;
+	return axiosInstance.get(url);
+};
+
+export const getCategoriesApi = (): Promise<SearchCategoryResponse> => {
+	const url = "/categories";
 	return axiosInstance.get(url);
 };

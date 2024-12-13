@@ -39,24 +39,19 @@ export const categoryHandlers = [
 		`${baseURL}/categories`,
 		async ({ request }) => {
 			const newCategory = await request.json();
+
 			await new Promise((resolve) => setTimeout(resolve, 2000));
 
 			if (!newCategory.name || newCategory.name.trim() === "") {
 				return HttpResponse.json(
-					{
-						message: "Category name is required",
-						statusCode: 400,
-					},
+					{ message: "Category name is required", statusCode: 400 },
 					{ status: 400 },
 				);
 			}
 
 			if (categories.some((category) => category.name === newCategory.name)) {
 				return HttpResponse.json(
-					{
-						message: "Category name already exists",
-						statusCode: 409,
-					},
+					{ message: "Category name already exists", statusCode: 409 },
 					{ status: 409 },
 				);
 			}
@@ -73,10 +68,7 @@ export const categoryHandlers = [
 			updateCategoryStorage();
 
 			return HttpResponse.json(
-				{
-					data: category,
-					message: "Category added successfully",
-				},
+				{ data: category, message: "Category added successfully" },
 				{ status: 201 },
 			);
 		},
@@ -90,6 +82,7 @@ export const categoryHandlers = [
 	>(`${baseURL}/categories/:categoryId`, async ({ params, request }) => {
 		const { categoryId } = params;
 		const categoryUpdate = await request.json();
+
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 
 		const existingCategory = categories.find(
@@ -97,10 +90,7 @@ export const categoryHandlers = [
 		);
 		if (!existingCategory) {
 			return HttpResponse.json(
-				{
-					message: "Category not found",
-					statusCode: 404,
-				},
+				{ message: "Category not found", statusCode: 404 },
 				{ status: 404 },
 			);
 		}
@@ -113,10 +103,7 @@ export const categoryHandlers = [
 			)
 		) {
 			return HttpResponse.json(
-				{
-					message: "Category name already exists",
-					statusCode: 409,
-				},
+				{ message: "Category name already exists", statusCode: 409 },
 				{ status: 409 },
 			);
 		}
@@ -129,10 +116,7 @@ export const categoryHandlers = [
 		updateCategoryStorage();
 
 		return HttpResponse.json(
-			{
-				data: existingCategory,
-				message: "Category updated successfully",
-			},
+			{ data: existingCategory, message: "Category updated successfully" },
 			{ status: 200 },
 		);
 	}),
@@ -160,22 +144,22 @@ export const categoryHandlers = [
 			categories.splice(categoryIndex, 1);
 			updateCategoryStorage();
 
-			return HttpResponse.json(null, { status: 204 });
+			return HttpResponse.json(undefined, { status: 204 });
 		},
 	),
 
-	// Search categories
-	http.get<{}, { query: string }, SearchCategoryResponse>(
+	// Get categories (with optional search query)
+	http.get<{}, {}, SearchCategoryResponse>(
 		`${baseURL}/categories`,
 		async ({ request }) => {
 			const urlObj = new URL(request.url);
-			const query = urlObj.searchParams.get("query") || "";
+			const query = urlObj.searchParams.get("query")?.toLowerCase();
 
-			await new Promise((resolve) => setTimeout(resolve, 2000));
-
-			const filteredCategories = categories.filter((category) =>
-				category.name.toLowerCase().includes(query.toLowerCase()),
-			);
+			const filteredCategories = query
+				? categories.filter((category) =>
+						category.name.toLowerCase().includes(query),
+					)
+				: categories;
 
 			return HttpResponse.json(
 				{

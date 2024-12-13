@@ -10,7 +10,11 @@ const passwordResetSchema = Yup.object().shape({
 	),
 	newPassword: Yup.string()
 		.required("Mật khẩu mới không được để trống")
-		.min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+		.min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+		.notOneOf(
+			[Yup.ref("currentPassword")],
+			"Mật khẩu mới không được giống mật khẩu cũ",
+		),
 	confirmPassword: Yup.string()
 		.oneOf([Yup.ref("newPassword")], "Mật khẩu xác nhận không khớp")
 		.required("Xác nhận mật khẩu không được để trống"),
@@ -24,18 +28,19 @@ interface ResetPasswordFormProps {
 	}) => Promise<void>;
 	isResettingPassword: boolean;
 	onResettingPasswordChange?: (isResetting: boolean) => void;
+	onBackClick?: () => void;
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
 	onPasswordReset,
 	isResettingPassword,
 	onResettingPasswordChange,
+	onBackClick,
 }) => {
 	const {
 		register,
 		handleSubmit,
 		formState: { errors, isValid },
-		reset,
 		watch,
 		trigger,
 	} = useForm({
@@ -62,7 +67,6 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
 
 		try {
 			await onPasswordReset(data);
-			reset();
 		} catch (error) {
 			console.error("Password reset failed", error);
 		} finally {
@@ -117,13 +121,23 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
 					</Form.Group>
 				</Col>
 			</Row>
-			<Button
-				type="submit"
-				variant="danger"
-				disabled={!isValid || isResettingPassword}
-			>
-				{isResettingPassword ? "Đang xử lý..." : "Đặt Lại Mật Khẩu"}
-			</Button>
+
+			<Row className="mt-3">
+				<Col xs="auto">
+					<Button
+						type="submit"
+						variant="danger"
+						disabled={!isValid || isResettingPassword}
+					>
+						{isResettingPassword ? "Đang xử lý..." : "Đặt Lại Mật Khẩu"}
+					</Button>
+				</Col>
+				<Col xs="auto">
+					<Button variant="secondary" onClick={onBackClick}>
+						Quay lại
+					</Button>
+				</Col>
+			</Row>
 		</Form>
 	);
 };
