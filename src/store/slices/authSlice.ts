@@ -216,6 +216,9 @@ const authSlice = createSlice({
 			})
 			.addCase(refreshToken.rejected, (state, action) => {
 				state.isLoading = false;
+				state.accessToken = null;
+				state.refreshToken = null;
+				state.user = null;
 				state.error = action.payload ?? "Refresh token failed";
 			})
 
@@ -228,7 +231,6 @@ const authSlice = createSlice({
 			});
 	},
 });
-export const selectIsAuthenticated = (state: { auth: AuthState }) =>
-	!!state.auth.user && !!state.auth.accessToken;
+
 export const { clearError, resetAuthState } = authSlice.actions;
 export default authSlice.reducer;

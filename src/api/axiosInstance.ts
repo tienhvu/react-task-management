@@ -1,15 +1,8 @@
-import { UnknownAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { Dispatch } from "react";
 import { resetAuthState } from "~/store/slices/authSlice";
+import { getInjectedDispatch } from "~/utils/injectDispatch"; // Import hàm lấy dispatch
 
 export const baseURL = "https://www.task-manager.api.mvn-training.com";
-
-let dispatchFunction: Dispatch<UnknownAction> | null = null;
-
-export const injectDispatch = (dispatch: Dispatch<UnknownAction>) => {
-	dispatchFunction = dispatch;
-};
 
 const axiosInstance = axios.create({
 	baseURL: baseURL,
@@ -42,8 +35,9 @@ axiosInstance.interceptors.response.use(
 	},
 	(error) => {
 		if (error.response?.status === 401) {
-			if (dispatchFunction) {
-				dispatchFunction(resetAuthState());
+			const dispatch = getInjectedDispatch();
+			if (dispatch) {
+				dispatch(resetAuthState());
 			}
 		}
 		return Promise.reject(error);
