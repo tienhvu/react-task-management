@@ -1,7 +1,6 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
-import { selectIsAuthenticated } from "~/store/slices/authSlice";
+import useLoggedIn from "~/hook/useLoggedIn";
 
 export type RouteConfig = {
 	path: string;
@@ -21,9 +20,9 @@ const ProtectedRoute: React.FC<Props> = ({
 	isPrivate,
 	layout: Layout,
 }) => {
-	const isAuthenticated = useSelector(selectIsAuthenticated);
+	const isLoggedIn = useLoggedIn();
 
-	if (isPrivate && !isAuthenticated) {
+	if (isPrivate && !isLoggedIn) {
 		return <Navigate to="/login" replace />;
 	}
 
