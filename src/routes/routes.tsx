@@ -9,6 +9,8 @@ import RegisterForm from "~/screens/Auth/Register";
 import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
 import Task from "~/screens/Tasks/Task";
 import Profile from "~/screens/User/Profile";
+import ProfileEdit from "~/screens/User/ProfileEdit";
+import ResetPassword from "~/screens/User/ResetPassword";
 
 const AppRoutes: React.FC = () => {
 	const routeConfigs: RouteConfig[] = [
@@ -21,6 +23,18 @@ const AppRoutes: React.FC = () => {
 		{
 			path: "/profile",
 			component: Profile,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: "/profile/edit",
+			component: ProfileEdit,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: "/profile/reset-password",
+			component: ResetPassword,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
