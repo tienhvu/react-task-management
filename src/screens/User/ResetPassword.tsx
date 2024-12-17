@@ -2,11 +2,23 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import { Button, Form, Row, Col, Container, Card } from "react-bootstrap";
+import {
+	Button,
+	Form,
+	Row,
+	Col,
+	Container,
+	Card,
+	Alert,
+} from "react-bootstrap";
 import { useToast } from "~/components/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "~/store/store";
-import { refreshToken, resetPassword } from "~/store/slices/authSlice";
+import {
+	clearError,
+	refreshToken,
+	resetPassword,
+} from "~/store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
 const passwordResetSchema = Yup.object().shape({
@@ -47,9 +59,11 @@ const ResetPassword = () => {
 	const currentPasswordValue = watch("currentPassword");
 	const newPasswordValue = watch("newPassword");
 
-	const { user, refreshToken: currentRefreshToken } = useSelector(
-		(state: RootState) => state.auth,
-	);
+	const {
+		user,
+		refreshToken: currentRefreshToken,
+		error,
+	} = useSelector((state: RootState) => state.auth);
 
 	useEffect(() => {
 		if (currentPasswordValue && newPasswordValue) {
@@ -62,6 +76,11 @@ const ResetPassword = () => {
 			trigger("confirmPassword");
 		}
 	}, [passwordValue, rePasswordValue, trigger]);
+
+	const backToProfile = () => {
+		dispatch(clearError());
+		navigate("/profile");
+	};
 
 	const onPasswordReset = async (passwordData: {
 		currentPassword: string;
@@ -90,6 +109,7 @@ const ResetPassword = () => {
 				}
 
 				showToast("Đổi mật khẩu thành công!");
+				backToProfile();
 			} else {
 				throw new Error("Password reset failed");
 			}
@@ -109,6 +129,7 @@ const ResetPassword = () => {
 						<Card.Header as="h3">Chỉnh sửa thông tin</Card.Header>
 						<Card.Body>
 							<Form onSubmit={handleSubmit(onPasswordReset)}>
+								{error && <Alert variant="danger">{error}</Alert>}
 								<Row>
 									<Col>
 										<Form.Group className="mb-3">
@@ -168,10 +189,7 @@ const ResetPassword = () => {
 										</Button>
 									</Col>
 									<Col xs="auto">
-										<Button
-											variant="secondary"
-											onClick={() => navigate("/profile")}
-										>
+										<Button variant="secondary" onClick={backToProfile}>
 											Quay lại
 										</Button>
 									</Col>
