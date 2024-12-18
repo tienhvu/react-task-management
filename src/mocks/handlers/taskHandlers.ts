@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { http, HttpResponse } from "msw";
 import { baseURL } from "~/api/axiosInstance";
 import { ErrorResponse } from "~/types/ErrorResponse";
@@ -5,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Category } from "~/types/Category";
 import { TaskStatus } from "~/types/StatusEnum";
 import { Task } from "~/types/Task";
-
+import { Response } from "~/types/Response";
 type CreateTaskRequest = {
 	title: string;
 	category: Category[];
@@ -36,7 +37,7 @@ function updateTaskStorage() {
 
 export const taskHandlers = [
 	// Add task
-	http.post<{}, CreateTaskRequest, Response | ErrorResponse>(
+	http.post<{}, CreateTaskRequest, Response<Task> | ErrorResponse>(
 		`${baseURL}/tasks`,
 		async ({ request }) => {
 			const newTask = await request.json();
@@ -73,7 +74,7 @@ export const taskHandlers = [
 	http.patch<
 		{ taskId: string },
 		UpdateTaskRequest,
-		TaskResponse | ErrorResponse
+		Response<Task> | ErrorResponse
 	>(`${baseURL}/tasks/:taskId`, async ({ params, request }) => {
 		const { taskId } = params;
 		const taskUpdate = await request.json();
