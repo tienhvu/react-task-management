@@ -1,169 +1,28 @@
-import { useMemo, useState } from "react";
-import {
-	Table,
-	Form,
-	Button,
-	Dropdown,
-	InputGroup,
-	Modal,
-	Pagination,
-} from "react-bootstrap";
+import { useEffect, useMemo, useState } from "react";
+import { Table, Form, Button, InputGroup } from "react-bootstrap";
+import { CategoryMultiSelect } from "./component/CategoryMultiSelect";
+import { StatusDropdown } from "./component/StatusDropdown";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "~/store/store";
+import { getCategories } from "~/store/slices/categorySlice";
 
-// Enhanced Category Dropdown with detailed information
-const CategoryMultiSelect = ({
-	categories,
-	selectedCategories,
-	onCategoryChange,
-}) => {
-	const [searchTerm, setSearchTerm] = useState("");
-	const [showModal, setShowModal] = useState(false);
-	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-	const filteredCategories = categories.filter((cat) =>
-		cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
-	);
-
-	const handleCategoryToggle = (category) => {
-		const isSelected = selectedCategories.some((c) => c.id === category.id);
-		if (isSelected) {
-			onCategoryChange(selectedCategories.filter((c) => c.id !== category.id));
-		} else {
-			onCategoryChange([...selectedCategories, category]);
-		}
-	};
-
-	return (
-		<>
-			<Dropdown
-				show={isDropdownOpen}
-				onToggle={(isOpen) => {
-					setIsDropdownOpen(isOpen);
-					if (isOpen) {
-						setShowModal(true);
-					}
-				}}
-				className="w-100"
-				style={{ maxWidth: "300px", overflow: "hidden" }}
-			>
-				<Dropdown.Toggle variant="outline-secondary" className="w-100">
-					{selectedCategories.length > 0
-						? selectedCategories.map((cat) => cat.name).join(", ")
-						: "Chọn danh mục"}
-				</Dropdown.Toggle>
-			</Dropdown>
-
-			<Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-				<Modal.Header closeButton>
-					<Modal.Title>Chọn Danh Mục Chi Tiết</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<InputGroup className="mb-3">
-						<Form.Control
-							placeholder="Tìm kiếm danh mục"
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-						/>
-					</InputGroup>
-
-					<Table striped bordered hover>
-						<thead>
-							<tr>
-								<th>Chọn</th>
-								<th>Tên Danh Mục</th>
-								<th>Mô Tả</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredCategories.map((category) => (
-								<tr
-									key={category.id}
-									className={
-										selectedCategories.some((c) => c.id === category.id)
-											? "table-active cursor-pointer"
-											: "cursor-pointer"
-									}
-									onClick={() => handleCategoryToggle(category)}
-								>
-									<td>
-										<Form.Check
-											type="checkbox"
-											id={`category-${category.id}`}
-											checked={selectedCategories.some(
-												(c) => c.id === category.id,
-											)}
-											onChange={() => handleCategoryToggle(category)}
-										/>
-									</td>
-									<td>{category.name}</td>
-									<td>{category.description}</td>
-								</tr>
-							))}
-						</tbody>
-					</Table>
-				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" onClick={() => setShowModal(false)}>
-						Đóng
-					</Button>
-					<Button variant="primary" onClick={() => setShowModal(false)}>
-						Xác Nhận
-					</Button>
-				</Modal.Footer>
-			</Modal>
-		</>
-	);
-};
-
-// Rest of the component remains the same as in the previous implementation
-const StatusDropdown = ({ statuses, selectedStatus, onStatusChange }) => {
-	const [isOpen, setIsOpen] = useState(false);
-
-	return (
-		<Dropdown
-			show={isOpen}
-			onToggle={(isOpen) => setIsOpen(isOpen)}
-			className="w-100"
-		>
-			<Dropdown.Toggle variant="outline-secondary" className="w-100">
-				{selectedStatus || "Chọn trạng thái"}
-			</Dropdown.Toggle>
-
-			<Dropdown.Menu className="w-100">
-				{statuses.map((status) => (
-					<Dropdown.Item
-						key={status}
-						onClick={() => {
-							onStatusChange(status);
-							setIsOpen(false);
-						}}
-					>
-						{status}
-					</Dropdown.Item>
-				))}
-			</Dropdown.Menu>
-		</Dropdown>
-	);
-};
 const TaskList = () => {
-	const [statuses] = useState(["Todo", "In Progress", "Completed"]);
+	const dispatch = useDispatch<AppDispatch>();
+	const { categories, isLoading } = useSelector(
+		(state: RootState) => state.category,
+	);
+	const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
-	const [categories, setCategories] = useState([
-		{
-			id: 1,
-			name: "Lập trình",
-			description: "Các nhiệm vụ liên quan đến lập trình",
-		},
-		{ id: 2, name: "Design", description: "Các nhiệm vụ thiết kế" },
-		{ id: 3, name: "Quản lý dự án", description: "Nhiệm vụ quản lý dự án" },
-		{ id: 4, name: "Marketing", description: "Các nhiệm vụ marketing" },
-		{ id: 5, name: "Coding", description: "Các nhiệm vụ coding" },
-	]);
+	// Fetch categories only once when the component mounts
+	useEffect(() => {
+		dispatch(getCategories()).then(() => setIsLoadingCategories(false)); // Update loading state once categories are fetched
+	}, [dispatch]);
 
 	const [tasks, setTasks] = useState([
 		{
 			id: 1,
 			title: "Phát triển web",
-			categories: [categories[0]],
+			categories: [],
 			status: "Todo",
 			createdAt: "2024-01-15",
 			updatedAt: "2024-01-15",
@@ -173,7 +32,7 @@ const TaskList = () => {
 		{
 			id: 2,
 			title: "Thiết kế giao diện",
-			categories: [categories[1]],
+			categories: [],
 			status: "In Progress",
 			createdAt: "2024-01-20",
 			updatedAt: "2024-01-20",
@@ -183,7 +42,7 @@ const TaskList = () => {
 		{
 			id: 3,
 			title: "Báo cáo dự án",
-			categories: [categories[2]],
+			categories: [],
 			status: "Completed",
 			createdAt: "2024-01-10",
 			updatedAt: "2024-01-25",
@@ -216,7 +75,7 @@ const TaskList = () => {
 
 	const handleAddTask = () => {
 		const newTask = {
-			id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1,
+			id: tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1,
 			title: "",
 			categories: [],
 			status: "Todo",
@@ -326,19 +185,12 @@ const TaskList = () => {
 								/>
 							</td>
 							<td>
-								<CategoryMultiSelect
-									categories={categories}
-									selectedCategories={task.categories}
-									onCategoryChange={(newCategories) =>
-										handleCategoriesChange(task.id, newCategories)
-									}
-								/>
+								<CategoryMultiSelect categories={categories} />
 							</td>
 							<td>
 								<StatusDropdown
-									statuses={statuses}
 									selectedStatus={task.status}
-									onStatusChange={(newStatus) =>
+									changeStatus={(newStatus) =>
 										handleStatusChange(task.id, newStatus)
 									}
 								/>
