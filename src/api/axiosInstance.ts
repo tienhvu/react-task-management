@@ -1,9 +1,8 @@
 import axios from "axios";
 import { resetAuthState } from "~/store/slices/authSlice";
 import { getInjectedDispatch } from "~/utils/injectDispatch";
-
 export const baseURL = "https://www.task-manager.api.mvn-training.com";
-
+const dispatch = getInjectedDispatch();
 const axiosInstance = axios.create({
 	baseURL: baseURL,
 	headers: {
@@ -35,7 +34,6 @@ axiosInstance.interceptors.response.use(
 	},
 	(error) => {
 		if (error.response?.status === 401) {
-			const dispatch = getInjectedDispatch();
 			if (dispatch) {
 				dispatch(resetAuthState());
 			}

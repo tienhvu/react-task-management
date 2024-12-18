@@ -10,6 +10,7 @@ import {
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "~/store/store";
+import { PATH } from "~/utils/constants/constants";
 
 const Profile = () => {
 	const { error, user } = useSelector((state: RootState) => state.auth);
@@ -89,14 +90,14 @@ const Profile = () => {
 								</Form.Group>
 								<Button
 									variant="primary"
-									onClick={() => navigate("/profile/edit")}
+									onClick={() => navigate(PATH.EDIT_USER)}
 								>
 									Chỉnh Sửa Thông Tin
 								</Button>
 								<Button
 									className="ms-2"
 									variant="success"
-									onClick={() => navigate("/profile/reset-password")}
+									onClick={() => navigate(PATH.RESET_PASSWORD)}
 								>
 									Thay Đổi Mật Khẩu
 								</Button>

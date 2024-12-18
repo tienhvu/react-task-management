@@ -8,6 +8,7 @@ import useLoggedIn from "~/hook/useLoggedIn";
 import { logout } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { profileStyle, sidebarStyle } from "./style";
+import { PATH } from "~/utils/constants/constants";
 
 const Sidebar: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
@@ -34,7 +35,7 @@ const Sidebar: React.FC = () => {
 	};
 
 	const handleProfileClick = () => {
-		navigate("/profile");
+		navigate(PATH.PROFILE);
 	};
 
 	const openLogoutModal = () => {

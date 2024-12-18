@@ -15,6 +15,7 @@ import { useToast } from "~/components/Toast";
 import { UpdateUserRequest } from "~/services/userApi";
 import { updateUser } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
+import { PATH } from "~/utils/constants/constants";
 import yup from "~/validations/schema/yup";
 
 const profileUpdateSchema = yup.object().shape({
@@ -41,6 +42,11 @@ const ProfileEdit = () => {
 		mode: "onChange",
 		defaultValues: user || {},
 	});
+
+	const backToProfile = () => {
+		dispatch(clearError());
+		navigate(PATH.PROFILE);
+	};
 
 	const updateProfile = async (data: UpdateUserRequest) => {
 		if (!user?.id) return;
