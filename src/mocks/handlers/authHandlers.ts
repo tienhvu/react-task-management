@@ -9,6 +9,10 @@ import { User } from "~/types/User";
 type LoginResponse = {
 	user: Omit<User, "password">;
 };
+export type AuthResponse = {
+	accessToken: string;
+	refreshToken: string;
+};
 
 export type AuthResponse = {
 	accessToken: string;

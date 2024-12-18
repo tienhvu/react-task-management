@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { Button, Dropdown, Image, Modal, Nav } from "react-bootstrap";
 import { BoxArrowRight, PersonCircle } from "react-bootstrap-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import profileImage from "~/assets/profile.png";
 import useLoggedIn from "~/hook/useLoggedIn";
 import { logout } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { profileStyle, sidebarStyle } from "./style";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 const Sidebar: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
@@ -34,7 +35,7 @@ const Sidebar: React.FC = () => {
 	};
 
 	const handleProfileClick = () => {
-		navigate("/profile");
+		navigate(SCREEN_PATHS.PROFILE);
 	};
 
 	const openLogoutModal = () => {
@@ -97,15 +98,16 @@ const Sidebar: React.FC = () => {
 				{/* Navigation Links */}
 				<Nav activeKey={location.pathname} className="flex-column">
 					{getNavLinks().map((link) => (
-						<Nav.Item key={link.key} className="mb-2">
-							<Nav.Link
-								eventKey={link.key}
-								onClick={() => navigate(link.key)}
-								className={`px-3 py-2 ${location.pathname === link.key ? "bg-primary text-white rounded" : ""}`}
-							>
-								{link.label}
-							</Nav.Link>
-						</Nav.Item>
+						<NavLink
+							key={link.key}
+							to={link.key}
+							className={({ isActive }) =>
+								`d-block px-3 py-2 mb-2 ${isActive ? "bg-primary text-white rounded" : "text-dark"}`
+							}
+							style={{ textDecoration: "none" }}
+						>
+							{link.label}
+						</NavLink>
 					))}
 				</Nav>
 			</div>

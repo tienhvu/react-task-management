@@ -21,7 +21,6 @@ export interface ResetPasswordResponse {
 	message: string;
 	statusCode: number;
 }
-
 export interface RegisterResponse {
 	user: User;
 	message: string;
@@ -64,6 +63,7 @@ export const refreshTokenApi = (
 
 	return axiosInstance.post(url, req);
 };
+
 export const deleteLoginInfoApi = (
 	userId: string,
 ): Promise<AxiosResponse<AuthResponse | ErrorResponse>> => {

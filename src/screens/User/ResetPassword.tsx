@@ -1,12 +1,26 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import { Button, Form, Row, Col } from "react-bootstrap";
+import {
+	Button,
+	Form,
+	Row,
+	Col,
+	Container,
+	Card,
+	Alert,
+} from "react-bootstrap";
 import { useToast } from "~/components/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "~/store/store";
-import { refreshToken, resetPassword } from "~/store/slices/authSlice";
+import {
+	clearError,
+	refreshToken,
+	resetPassword,
+} from "~/store/slices/authSlice";
+import { useNavigate } from "react-router-dom";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 const passwordResetSchema = Yup.object().shape({
 	currentPassword: Yup.string().required(
@@ -24,7 +38,13 @@ const passwordResetSchema = Yup.object().shape({
 		.required("Xác nhận mật khẩu không được để trống"),
 });
 
-const ResetPassword: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+type PasswordData = {
+	currentPassword: string;
+	newPassword: string;
+	confirmPassword: string;
+};
+
+const ResetPassword = () => {
 	const {
 		register,
 		handleSubmit,
@@ -37,6 +57,7 @@ const ResetPassword: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 		reValidateMode: "onChange",
 	});
 
+	const navigate = useNavigate();
 	const { showToast } = useToast();
 	const dispatch = useDispatch<AppDispatch>();
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -45,9 +66,11 @@ const ResetPassword: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 	const currentPasswordValue = watch("currentPassword");
 	const newPasswordValue = watch("newPassword");
 
-	const { user, refreshToken: currentRefreshToken } = useSelector(
-		(state: RootState) => state.auth,
-	);
+	const {
+		user,
+		refreshToken: currentRefreshToken,
+		error,
+	} = useSelector((state: RootState) => state.auth);
 
 	useEffect(() => {
 		if (currentPasswordValue && newPasswordValue) {
@@ -61,11 +84,12 @@ const ResetPassword: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 		}
 	}, [passwordValue, rePasswordValue, trigger]);
 
-	const onPasswordReset = async (passwordData: {
-		currentPassword: string;
-		newPassword: string;
-		confirmPassword: string;
-	}) => {
+	const backToProfile = () => {
+		dispatch(clearError());
+		navigate(SCREEN_PATHS.PROFILE);
+	};
+
+	const onPasswordReset = async (passwordData: PasswordData) => {
 		if (!user?.id) return;
 		setIsResettingPassword(true);
 		try {
@@ -88,7 +112,7 @@ const ResetPassword: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 				}
 
 				showToast("Đổi mật khẩu thành công!");
-				onBack();
+				backToProfile();
 			} else {
 				throw new Error("Password reset failed");
 			}
@@ -101,70 +125,84 @@ const ResetPassword: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 	};
 
 	return (
-		<Form onSubmit={handleSubmit(onPasswordReset)}>
-			<Row>
-				<Col>
-					<Form.Group className="mb-3">
-						<Form.Label>Mật Khẩu Hiện Tại</Form.Label>
-						<Form.Control
-							type="password"
-							{...register("currentPassword")}
-							isInvalid={!!errors.currentPassword}
-						/>
-						<Form.Control.Feedback type="invalid">
-							{errors.currentPassword?.message}
-						</Form.Control.Feedback>
-					</Form.Group>
-				</Col>
-			</Row>
-			<Row>
-				<Col>
-					<Form.Group className="mb-3">
-						<Form.Label>Mật Khẩu Mới</Form.Label>
-						<Form.Control
-							type="password"
-							{...register("newPassword")}
-							isInvalid={!!errors.newPassword}
-						/>
-						<Form.Control.Feedback type="invalid">
-							{errors.newPassword?.message}
-						</Form.Control.Feedback>
-					</Form.Group>
-				</Col>
-			</Row>
-			<Row>
-				<Col>
-					<Form.Group className="mb-3">
-						<Form.Label>Xác Nhận Mật Khẩu Mới</Form.Label>
-						<Form.Control
-							type="password"
-							{...register("confirmPassword")}
-							isInvalid={!!errors.confirmPassword}
-						/>
-						<Form.Control.Feedback type="invalid">
-							{errors.confirmPassword?.message}
-						</Form.Control.Feedback>
-					</Form.Group>
-				</Col>
-			</Row>
+		<Container className="mt-5">
+			<Row className="justify-content-md-center">
+				<Col md={8}>
+					<Card>
+						<Card.Header as="h3">Chỉnh sửa thông tin</Card.Header>
+						<Card.Body>
+							<Form onSubmit={handleSubmit(onPasswordReset)}>
+								{error && <Alert variant="danger">{error}</Alert>}
+								<Row>
+									<Col>
+										<Form.Group className="mb-3">
+											<Form.Label>Mật Khẩu Hiện Tại</Form.Label>
+											<Form.Control
+												type="password"
+												{...register("currentPassword")}
+												isInvalid={!!errors.currentPassword}
+											/>
+											<Form.Control.Feedback type="invalid">
+												{errors.currentPassword?.message}
+											</Form.Control.Feedback>
+										</Form.Group>
+									</Col>
+								</Row>
+								<Row>
+									<Col>
+										<Form.Group className="mb-3">
+											<Form.Label>Mật Khẩu Mới</Form.Label>
+											<Form.Control
+												type="password"
+												{...register("newPassword")}
+												isInvalid={!!errors.newPassword}
+											/>
+											<Form.Control.Feedback type="invalid">
+												{errors.newPassword?.message}
+											</Form.Control.Feedback>
+										</Form.Group>
+									</Col>
+								</Row>
+								<Row>
+									<Col>
+										<Form.Group className="mb-3">
+											<Form.Label>Xác Nhận Mật Khẩu Mới</Form.Label>
+											<Form.Control
+												type="password"
+												{...register("confirmPassword")}
+												isInvalid={!!errors.confirmPassword}
+											/>
+											<Form.Control.Feedback type="invalid">
+												{errors.confirmPassword?.message}
+											</Form.Control.Feedback>
+										</Form.Group>
+									</Col>
+								</Row>
 
-			<Row className="mt-3">
-				<Col xs="auto">
-					<Button
-						type="submit"
-						variant="danger"
-						disabled={!isValid || isResettingPassword}
-					>
-						{isResettingPassword ? "Đang xử lý..." : "Đặt Lại Mật Khẩu"}
-					</Button>
-				</Col>
-				<Col xs="auto">
-					<Button variant="secondary" onClick={onBack}>
-						Quay lại
-					</Button>
+								<Row className="mt-3">
+									<Col xs="auto">
+										<Button
+											type="submit"
+											variant="danger"
+											disabled={!isValid || isResettingPassword}
+										>
+											{isResettingPassword
+												? "Đang xử lý..."
+												: "Đặt Lại Mật Khẩu"}
+										</Button>
+									</Col>
+									<Col xs="auto">
+										<Button variant="secondary" onClick={backToProfile}>
+											Quay lại
+										</Button>
+									</Col>
+								</Row>
+							</Form>
+						</Card.Body>
+					</Card>
 				</Col>
 			</Row>
-		</Form>
+		</Container>
 	);
 };
 
