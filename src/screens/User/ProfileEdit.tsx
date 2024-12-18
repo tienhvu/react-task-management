@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "~/components/Toast";
 import { UpdateUserRequest } from "~/services/userApi";
-import { updateUser } from "~/store/slices/authSlice";
+import { clearError, updateUser } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { PATH } from "~/utils/constants/constants";
 import yup from "~/validations/schema/yup";
@@ -158,10 +158,7 @@ const ProfileEdit = () => {
 									>
 										{isLoading ? "Đang lưu..." : "Lưu Thay Đổi"}
 									</Button>
-									<Button
-										variant="secondary"
-										onClick={() => navigate("/profile")}
-									>
+									<Button variant="secondary" onClick={backToProfile}>
 										Hủy
 									</Button>
 								</div>

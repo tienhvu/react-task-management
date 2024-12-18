@@ -6,7 +6,11 @@ import { Button, Form, Row, Col, Container, Card } from "react-bootstrap";
 import { useToast } from "~/components/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "~/store/store";
-import { refreshToken, resetPassword } from "~/store/slices/authSlice";
+import {
+	clearError,
+	refreshToken,
+	resetPassword,
+} from "~/store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "~/utils/constants/constants";
 
@@ -176,10 +180,7 @@ const ResetPassword = () => {
 										</Button>
 									</Col>
 									<Col xs="auto">
-										<Button
-											variant="secondary"
-											onClick={() => navigate("/profile")}
-										>
+										<Button variant="secondary" onClick={backToProfile}>
 											Quay lại
 										</Button>
 									</Col>
