@@ -20,7 +20,7 @@ import {
 	resetPassword,
 } from "~/store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
-import { PATH } from "~/utils/constants/constants";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 const passwordResetSchema = Yup.object().shape({
 	currentPassword: Yup.string().required(
@@ -86,7 +86,7 @@ const ResetPassword = () => {
 
 	const backToProfile = () => {
 		dispatch(clearError());
-		navigate(PATH.PROFILE);
+		navigate(SCREEN_PATHS.PROFILE);
 	};
 
 	const onPasswordReset = async (passwordData: PasswordData) => {
