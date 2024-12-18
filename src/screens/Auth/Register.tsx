@@ -9,6 +9,7 @@ import { useToast } from "~/components/Toast";
 import { register as registerAction } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { RegisterUser } from "~/types/RegisterUser";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 import yup from "~/validations/schema/yup";
 
 const registerSchema = Yup.object().shape({
@@ -200,7 +201,10 @@ export const RegisterForm: React.FC = () => {
 				<div className="text-center mt-4">
 					<p>
 						Đã có tài khoản?{" "}
-						<NavLink to="/login" className="text-blue-600 hover:underline">
+						<NavLink
+							to={SCREEN_PATHS.LOGIN}
+							className="text-blue-600 hover:underline"
+						>
 							Đăng nhập
 						</NavLink>
 					</p>

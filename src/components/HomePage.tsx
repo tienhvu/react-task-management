@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card, Container } from "react-bootstrap";
 import useLoggedIn from "~/hook/useLoggedIn";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 const HomePage: React.FC = () => {
 	const isLoggedIn = useLoggedIn();
@@ -14,7 +15,7 @@ const HomePage: React.FC = () => {
 						<Card.Text>
 							Đây là một trang công khai mà ai cũng có thể truy cập.
 						</Card.Text>
-						<Button variant="primary" href="/login">
+						<Button variant="primary" href={SCREEN_PATHS.LOGIN}>
 							Đăng nhập
 						</Button>
 					</Card.Body>

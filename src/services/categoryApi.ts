@@ -1,5 +1,6 @@
 import axiosInstance from "~/api/axiosInstance";
 import { Category } from "~/types/Category";
+import { Response } from "~/types/Response";
 
 export interface CreateCategoryRequest {
 	name: string;
@@ -11,29 +12,19 @@ export interface UpdateCategoryRequest {
 	description?: string;
 }
 
-export interface CategoryResponse {
-	data: Category;
-	message: string;
-}
-
-export interface SearchCategoryResponse {
-	data: Category[];
-	message: string;
-}
-
 // Add category
-export const addCategoryApi = (
+export const add = (
 	categoryData: CreateCategoryRequest,
-): Promise<CategoryResponse> => {
+): Promise<Response<Category>> => {
 	const url = "/categories";
 	return axiosInstance.post(url, categoryData);
 };
 
 // Update category
-export const updateCategoryApi = (
+export const update = (
 	categoryId: string,
 	categoryData: UpdateCategoryRequest,
-): Promise<CategoryResponse> => {
+): Promise<Response<Category>> => {
 	const url = `/categories/${categoryId}`;
 	return axiosInstance.patch(url, categoryData);
 };
@@ -45,14 +36,12 @@ export const deleteCategoryApi = (categoryId: string): Promise<void> => {
 };
 
 // Search categories
-export const searchCategoriesApi = (
-	query: string,
-): Promise<SearchCategoryResponse> => {
+export const search = (query: string): Promise<Response<Category[]>> => {
 	const url = `/categories?query=${encodeURIComponent(query)}`;
 	return axiosInstance.get(url);
 };
 
-export const getCategoriesApi = (): Promise<SearchCategoryResponse> => {
+export const get = (): Promise<Response<Category[]>> => {
 	const url = "/categories";
 	return axiosInstance.get(url);
 };

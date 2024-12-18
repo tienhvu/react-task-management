@@ -63,7 +63,6 @@ export const refreshTokenApi = (
 
 	return axiosInstance.post(url, req);
 };
-
 export const deleteLoginInfoApi = (
 	userId: string,
 ): Promise<AxiosResponse<AuthResponse | ErrorResponse>> => {

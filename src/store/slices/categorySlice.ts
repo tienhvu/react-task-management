@@ -1,26 +1,24 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-	addCategoryApi,
-	updateCategoryApi,
+	add,
+	update,
 	deleteCategoryApi,
-	searchCategoriesApi,
+	search,
 	CreateCategoryRequest,
 	UpdateCategoryRequest,
-	getCategoriesApi,
+	get,
 } from "~/services/categoryApi";
 
 import { Category } from "~/types/Category";
 
 interface CategoryState {
 	categories: Category[];
-	selectedCategory: Category | null;
 	isLoading: boolean;
 	error: string | null;
 }
 
 const initialState: CategoryState = {
 	categories: [],
-	selectedCategory: null,
 	isLoading: false,
 	error: null,
 };
@@ -30,7 +28,7 @@ export const addCategory = createAsyncThunk(
 	"category/add",
 	async (categoryData: CreateCategoryRequest, { rejectWithValue }) => {
 		try {
-			const response = await addCategoryApi(categoryData);
+			const response = await add(categoryData);
 			return response.data;
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
@@ -51,7 +49,7 @@ export const updateCategory = createAsyncThunk(
 		{ rejectWithValue },
 	) => {
 		try {
-			const response = await updateCategoryApi(categoryId, categoryData);
+			const response = await update(categoryId, categoryData);
 			return response.data;
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
@@ -81,7 +79,7 @@ export const searchCategories = createAsyncThunk(
 	"category/search",
 	async (query: string, { rejectWithValue }) => {
 		try {
-			const response = await searchCategoriesApi(query);
+			const response = await search(query);
 			return response.data;
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
@@ -96,7 +94,7 @@ export const getCategories = createAsyncThunk(
 	"category/getAll",
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await getCategoriesApi();
+			const response = await get();
 			return response.data;
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
@@ -111,9 +109,6 @@ const categorySlice = createSlice({
 	name: "category",
 	initialState,
 	reducers: {
-		selectCategory: (state, action) => {
-			state.selectedCategory = action.payload;
-		},
 		clearError: (state) => {
 			state.error = null;
 		},
@@ -124,9 +119,9 @@ const categorySlice = createSlice({
 				state.isLoading = true;
 				state.error = null;
 			})
-			.addCase(addCategory.fulfilled, (state, action) => {
+			.addCase(addCategory.fulfilled, (state) => {
 				state.isLoading = false;
-				state.categories.push(action.payload);
+				state.error = null;
 			})
 			.addCase(addCategory.rejected, (state, action) => {
 				state.isLoading = false;
@@ -136,14 +131,9 @@ const categorySlice = createSlice({
 				state.isLoading = true;
 				state.error = null;
 			})
-			.addCase(updateCategory.fulfilled, (state, action) => {
+			.addCase(updateCategory.fulfilled, (state) => {
 				state.isLoading = false;
-				const index = state.categories.findIndex(
-					(category) => category.id === action.payload.id,
-				);
-				if (index !== -1) {
-					state.categories[index] = action.payload;
-				}
+				state.error = null;
 			})
 			.addCase(updateCategory.rejected, (state, action) => {
 				state.isLoading = false;
@@ -190,5 +180,5 @@ const categorySlice = createSlice({
 	},
 });
 
-export const { selectCategory, clearError } = categorySlice.actions;
+export const { clearError } = categorySlice.actions;
 export default categorySlice.reducer;
