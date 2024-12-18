@@ -1,18 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
 import {
-	persistStore,
-	persistReducer,
 	FLUSH,
-	REHYDRATE,
 	PAUSE,
 	PERSIST,
+	persistReducer,
+	persistStore,
 	PURGE,
 	REGISTER,
+	REHYDRATE,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
 import authReducer from "./slices/authSlice";
-
 const authPersistConfig = {
 	key: "auth",
 	storage,
@@ -32,7 +31,6 @@ export const store = configureStore({
 			},
 		}),
 });
-
 export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;

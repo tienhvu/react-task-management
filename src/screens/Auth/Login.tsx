@@ -18,11 +18,9 @@ const loginSchema = yup.object().shape({
 export const LoginForm: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
-	const {
-		error,
-		loading: isLoading,
-		accessToken,
-	} = useSelector((state: RootState) => state.auth);
+	const { error, isLoading, accessToken } = useSelector(
+		(state: RootState) => state.auth,
+	);
 	const { showToast } = useToast();
 	const {
 		register,
