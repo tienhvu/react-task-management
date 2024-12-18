@@ -20,6 +20,7 @@ import {
 	resetPassword,
 } from "~/store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
+import { PATH } from "~/utils/constants/constants";
 
 const passwordResetSchema = Yup.object().shape({
 	currentPassword: Yup.string().required(
@@ -36,6 +37,12 @@ const passwordResetSchema = Yup.object().shape({
 		.oneOf([Yup.ref("newPassword")], "Mật khẩu xác nhận không khớp")
 		.required("Xác nhận mật khẩu không được để trống"),
 });
+
+type PasswordData = {
+	currentPassword: string;
+	newPassword: string;
+	confirmPassword: string;
+};
 
 const ResetPassword = () => {
 	const {
@@ -79,14 +86,10 @@ const ResetPassword = () => {
 
 	const backToProfile = () => {
 		dispatch(clearError());
-		navigate("/profile");
+		navigate(PATH.PROFILE);
 	};
 
-	const onPasswordReset = async (passwordData: {
-		currentPassword: string;
-		newPassword: string;
-		confirmPassword: string;
-	}) => {
+	const onPasswordReset = async (passwordData: PasswordData) => {
 		if (!user?.id) return;
 		setIsResettingPassword(true);
 		try {

@@ -15,6 +15,7 @@ import { useToast } from "~/components/Toast";
 import { UpdateUserRequest } from "~/services/userApi";
 import { clearError, updateUser } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
+import { PATH } from "~/utils/constants/constants";
 import yup from "~/validations/schema/yup";
 
 const profileUpdateSchema = yup.object().shape({
@@ -44,7 +45,7 @@ const ProfileEdit = () => {
 
 	const backToProfile = () => {
 		dispatch(clearError());
-		navigate("/profile");
+		navigate(PATH.PROFILE);
 	};
 
 	const updateProfile = async (data: UpdateUserRequest) => {
