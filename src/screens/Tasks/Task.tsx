@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	Table,
 	Form,
@@ -9,33 +9,55 @@ import {
 	Pagination,
 } from "react-bootstrap";
 
-// Component Dropdown Danh Mục với Nút Chi Tiết
-const CategoryDropdown = ({
+// Enhanced Category Dropdown with detailed information
+const CategoryMultiSelect = ({
 	categories,
-	selectedCategory,
+	selectedCategories,
 	onCategoryChange,
-	onDetailView,
 }) => {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [isOpen, setIsOpen] = useState(false);
+	const [showModal, setShowModal] = useState(false);
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
 	const filteredCategories = categories.filter((cat) =>
 		cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
-	return (
-		<div className="d-flex align-items-center">
-			<Dropdown
-				show={isOpen}
-				onToggle={(isOpen) => setIsOpen(isOpen)}
-				className="flex-grow-1 me-2"
-			>
-				<Dropdown.Toggle variant="outline-secondary">
-					{selectedCategory?.name || "Chọn danh mục"}
-				</Dropdown.Toggle>
+	const handleCategoryToggle = (category) => {
+		const isSelected = selectedCategories.some((c) => c.id === category.id);
+		if (isSelected) {
+			onCategoryChange(selectedCategories.filter((c) => c.id !== category.id));
+		} else {
+			onCategoryChange([...selectedCategories, category]);
+		}
+	};
 
-				<Dropdown.Menu style={{ width: "300px", padding: "10px" }}>
-					<InputGroup className="mb-2">
+	return (
+		<>
+			<Dropdown
+				show={isDropdownOpen}
+				onToggle={(isOpen) => {
+					setIsDropdownOpen(isOpen);
+					if (isOpen) {
+						setShowModal(true);
+					}
+				}}
+				className="w-100"
+				style={{ maxWidth: "300px", overflow: "hidden" }}
+			>
+				<Dropdown.Toggle variant="outline-secondary" className="w-100">
+					{selectedCategories.length > 0
+						? selectedCategories.map((cat) => cat.name).join(", ")
+						: "Chọn danh mục"}
+				</Dropdown.Toggle>
+			</Dropdown>
+
+			<Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title>Chọn Danh Mục Chi Tiết</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<InputGroup className="mb-3">
 						<Form.Control
 							placeholder="Tìm kiếm danh mục"
 							value={searchTerm}
@@ -43,62 +65,85 @@ const CategoryDropdown = ({
 						/>
 					</InputGroup>
 
-					<div style={{ maxHeight: "200px", overflowY: "auto" }}>
-						{filteredCategories.map((category) => (
-							<Dropdown.Item
-								key={category.id}
-								onClick={() => {
-									onCategoryChange(category);
-									setIsOpen(false);
-								}}
-							>
-								{category.name}
-							</Dropdown.Item>
-						))}
-					</div>
+					<Table striped bordered hover>
+						<thead>
+							<tr>
+								<th>Chọn</th>
+								<th>Tên Danh Mục</th>
+								<th>Mô Tả</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredCategories.map((category) => (
+								<tr
+									key={category.id}
+									className={
+										selectedCategories.some((c) => c.id === category.id)
+											? "table-active cursor-pointer"
+											: "cursor-pointer"
+									}
+									onClick={() => handleCategoryToggle(category)}
+								>
+									<td>
+										<Form.Check
+											type="checkbox"
+											id={`category-${category.id}`}
+											checked={selectedCategories.some(
+												(c) => c.id === category.id,
+											)}
+											onChange={() => handleCategoryToggle(category)}
+										/>
+									</td>
+									<td>{category.name}</td>
+									<td>{category.description}</td>
+								</tr>
+							))}
+						</tbody>
+					</Table>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setShowModal(false)}>
+						Đóng
+					</Button>
+					<Button variant="primary" onClick={() => setShowModal(false)}>
+						Xác Nhận
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		</>
+	);
+};
 
-					<Dropdown.Divider />
+// Rest of the component remains the same as in the previous implementation
+const StatusDropdown = ({ statuses, selectedStatus, onStatusChange }) => {
+	const [isOpen, setIsOpen] = useState(false);
+
+	return (
+		<Dropdown
+			show={isOpen}
+			onToggle={(isOpen) => setIsOpen(isOpen)}
+			className="w-100"
+		>
+			<Dropdown.Toggle variant="outline-secondary" className="w-100">
+				{selectedStatus || "Chọn trạng thái"}
+			</Dropdown.Toggle>
+
+			<Dropdown.Menu className="w-100">
+				{statuses.map((status) => (
 					<Dropdown.Item
+						key={status}
 						onClick={() => {
-							/* Logic thêm danh mục */
+							onStatusChange(status);
+							setIsOpen(false);
 						}}
 					>
-						+ Thêm danh mục mới
+						{status}
 					</Dropdown.Item>
-				</Dropdown.Menu>
-			</Dropdown>
-
-			<Button
-				variant="outline-info"
-				size="sm"
-				onClick={() => onDetailView(selectedCategory)}
-				disabled={!selectedCategory}
-			>
-				Chi tiết
-			</Button>
-		</div>
+				))}
+			</Dropdown.Menu>
+		</Dropdown>
 	);
 };
-
-// Component Status Checkbox Ngang
-const StatusCheckbox = ({ statuses, selectedStatus, onStatusChange }) => {
-	return (
-		<div className="d-flex">
-			{statuses.map((status) => (
-				<Form.Check
-					key={status}
-					type="radio"
-					label={status}
-					name="status-radio"
-					checked={selectedStatus === status}
-					onChange={() => onStatusChange(status)}
-					className="me-3"
-				/>
-			))}
-		</div>
-	);
-};
-
 const TaskList = () => {
 	const [statuses] = useState(["Todo", "In Progress", "Completed"]);
 
@@ -109,94 +154,89 @@ const TaskList = () => {
 			description: "Các nhiệm vụ liên quan đến lập trình",
 		},
 		{ id: 2, name: "Design", description: "Các nhiệm vụ thiết kế" },
-		{ id: 3, name: "Quản lý", description: "Nhiệm vụ quản lý dự án" },
+		{ id: 3, name: "Quản lý dự án", description: "Nhiệm vụ quản lý dự án" },
 		{ id: 4, name: "Marketing", description: "Các nhiệm vụ marketing" },
+		{ id: 5, name: "Coding", description: "Các nhiệm vụ coding" },
 	]);
+
 	const [tasks, setTasks] = useState([
 		{
 			id: 1,
 			title: "Phát triển web",
-			category: categories[0],
+			categories: [categories[0]],
 			status: "Todo",
 			createdAt: "2024-01-15",
 			updatedAt: "2024-01-15",
 			hasChanges: false,
+			isNewTask: false,
 		},
 		{
 			id: 2,
 			title: "Thiết kế giao diện",
-			category: categories[1],
+			categories: [categories[1]],
 			status: "In Progress",
 			createdAt: "2024-01-20",
 			updatedAt: "2024-01-20",
 			hasChanges: false,
+			isNewTask: false,
 		},
 		{
 			id: 3,
 			title: "Báo cáo dự án",
-			category: categories[2],
+			categories: [categories[2]],
 			status: "Completed",
 			createdAt: "2024-01-10",
 			updatedAt: "2024-01-25",
 			hasChanges: false,
-		},
-		{
-			id: 4,
-			title: "Chiến dịch quảng cáo",
-			category: categories[3],
-			status: "Todo",
-			createdAt: "2024-02-01",
-			updatedAt: "2024-02-01",
-			hasChanges: false,
+			isNewTask: false,
 		},
 	]);
+
 	const [searchTerm, setSearchTerm] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [tasksPerPage] = useState(5);
-	// Hàm lọc và phân trang tasks
+
+	// Update the filteredAndPaginatedTasks to show all tasks including new ones
 	const filteredAndPaginatedTasks = useMemo(() => {
-		// Lọc tasks theo từ khóa tìm kiếm
 		const filtered = tasks.filter(
 			(task) =>
 				task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				task.category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				task.categories.some((cat) =>
+					cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
+				) ||
 				task.status.toLowerCase().includes(searchTerm.toLowerCase()),
 		);
 
-		// Phân trang
 		const indexOfLastTask = currentPage * tasksPerPage;
 		const indexOfFirstTask = indexOfLastTask - tasksPerPage;
 		return filtered.slice(indexOfFirstTask, indexOfLastTask);
 	}, [tasks, searchTerm, currentPage, tasksPerPage]);
 
-	// Tính toán số trang
 	const totalPages = Math.ceil(tasks.length / tasksPerPage);
 
-	const [showCategoryModal, setShowCategoryModal] = useState(false);
-	const [currentCategory, setCurrentCategory] = useState(null);
-	const [categoryForm, setCategoryForm] = useState({
-		title: "",
-		description: "",
-	});
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const handleAddTask = () => {
+		const newTask = {
+			id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1,
+			title: "",
+			categories: [],
+			status: "Todo",
+			createdAt: new Date().toISOString().split("T")[0],
+			updatedAt: new Date().toISOString().split("T")[0],
+			hasChanges: true,
+			isNewTask: true,
+		};
+		setTasks([...tasks, newTask]);
+		setCurrentPage(Math.ceil((tasks.length + 1) / tasksPerPage));
+	};
 
-	// Status Checkbox for individual task
-	const IndividualStatusCheckbox = ({ task, onStatusChange }) => {
-		return (
-			<div className="d-flex">
-				{statuses.map((status) => (
-					<Form.Check
-						key={status}
-						type="radio"
-						label={status}
-						name={`status-radio-${task.id}`}
-						checked={task.status === status}
-						onChange={() => onStatusChange(task.id, status)}
-						className="me-3"
-					/>
-				))}
-			</div>
-		);
+	const handleDeleteTask = (taskId) => {
+		const updatedTasks = tasks.filter((task) => task.id !== taskId);
+		setTasks(updatedTasks);
+
+		// Adjust current page if needed
+		if (currentPage > Math.ceil(updatedTasks.length / tasksPerPage)) {
+			setCurrentPage(Math.ceil(updatedTasks.length / tasksPerPage));
+		}
 	};
 
 	const updateTaskChanges = (taskId, updates) => {
@@ -213,27 +253,12 @@ const TaskList = () => {
 		setTasks(updatedTasks);
 	};
 
-	const handleAddTask = () => {
-		const newTask = {
-			id: tasks.length + 1,
-			title: "",
-			category: null,
-			status: "Todo",
-			createdAt: new Date().toISOString().split("T")[0],
-			updatedAt: new Date().toISOString().split("T")[0],
-			hasChanges: true,
-		};
-		setTasks([...tasks, newTask]);
-	};
-
-	const handleCategoryChange = (taskId, newCategory) => {
-		updateTaskChanges(taskId, { category: newCategory });
+	const handleCategoriesChange = (taskId, newCategories) => {
+		updateTaskChanges(taskId, { categories: newCategories });
 	};
 
 	const handleStatusChange = (taskId, newStatus) => {
-		updateTaskChanges(taskId, {
-			status: newStatus,
-		});
+		updateTaskChanges(taskId, { status: newStatus });
 	};
 
 	const handleTitleChange = (taskId, newTitle) => {
@@ -242,63 +267,39 @@ const TaskList = () => {
 
 	const handleSaveTask = (taskId) => {
 		const updatedTasks = tasks.map((task) =>
-			task.id === taskId ? { ...task, hasChanges: false } : task,
-		);
-		setTasks(updatedTasks);
-	};
-
-	const handleCancelTask = (taskId) => {
-		// Optionally implement logic to revert changes
-		const updatedTasks = tasks.map((task) =>
 			task.id === taskId
 				? {
 						...task,
 						hasChanges: false,
+						isNewTask: false,
 					}
 				: task,
 		);
 		setTasks(updatedTasks);
 	};
 
-	const handleCategoryDetail = (category) => {
-		setCurrentCategory(category);
-		setCategoryForm({
-			title: category.name,
-			description: category.description,
-		});
-		setShowCategoryModal(true);
-	};
-
-	const handleAddCategory = () => {
-		const newCategory = {
-			id: categories.length + 1,
-			name: categoryForm.title,
-			description: categoryForm.description,
-		};
-		setCategories([...categories, newCategory]);
-		setShowCategoryModal(false);
-		setCategoryForm({ title: "", description: "" });
-	};
-
-	const handleDeleteCategory = () => {
-		const filteredCategories = categories.filter(
-			(cat) => cat.id !== currentCategory.id,
-		);
-		setCategories(filteredCategories);
-		setShowDeleteConfirm(false);
-		setShowCategoryModal(false);
+	const handleCancelTask = (taskId) => {
+		// If it's a new task, delete it
+		if (tasks.find((task) => task.id === taskId)?.isNewTask) {
+			handleDeleteTask(taskId);
+		} else {
+			// If it's an existing task, reset changes
+			const updatedTasks = tasks.map((task) =>
+				task.id === taskId ? { ...task, hasChanges: false } : task,
+			);
+			setTasks(updatedTasks);
+		}
 	};
 
 	return (
 		<div className="p-4">
-			{/* Thêm ô tìm kiếm */}
 			<InputGroup className="mb-3">
 				<Form.Control
 					placeholder="Tìm kiếm tasks (theo tiêu đề, danh mục, trạng thái)"
 					value={searchTerm}
 					onChange={(e) => {
 						setSearchTerm(e.target.value);
-						setCurrentPage(1); // Reset về trang đầu khi tìm kiếm
+						setCurrentPage(1);
 					}}
 				/>
 			</InputGroup>
@@ -325,19 +326,21 @@ const TaskList = () => {
 								/>
 							</td>
 							<td>
-								<CategoryDropdown
+								<CategoryMultiSelect
 									categories={categories}
-									selectedCategory={task.category}
-									onCategoryChange={(newCategory) =>
-										handleCategoryChange(task.id, newCategory)
+									selectedCategories={task.categories}
+									onCategoryChange={(newCategories) =>
+										handleCategoriesChange(task.id, newCategories)
 									}
-									onDetailView={handleCategoryDetail}
 								/>
 							</td>
 							<td>
-								<IndividualStatusCheckbox
-									task={task}
-									onStatusChange={handleStatusChange}
+								<StatusDropdown
+									statuses={statuses}
+									selectedStatus={task.status}
+									onStatusChange={(newStatus) =>
+										handleStatusChange(task.id, newStatus)
+									}
 								/>
 							</td>
 							<td>{task.createdAt}</td>
@@ -358,9 +361,18 @@ const TaskList = () => {
 											size="sm"
 											onClick={() => handleCancelTask(task.id)}
 										>
-											Hủy
+											{task.isNewTask ? "Xóa" : "Hủy"}
 										</Button>
 									</div>
+								)}
+								{task.isNewTask && !task.hasChanges && (
+									<Button
+										variant="outline-danger"
+										size="sm"
+										onClick={() => handleDeleteTask(task.id)}
+									>
+										Xóa
+									</Button>
 								)}
 							</td>
 						</tr>
@@ -368,108 +380,11 @@ const TaskList = () => {
 				</tbody>
 			</Table>
 
-
 			<div className="d-flex justify-content-between align-items-center">
 				<Button variant="outline-success" onClick={handleAddTask}>
 					+ Thêm Task Mới
 				</Button>
-
-				<Pagination>
-					<Pagination.First
-						onClick={() => setCurrentPage(1)}
-						disabled={currentPage === 1}
-					/>
-					<Pagination.Prev
-						onClick={() => setCurrentPage(currentPage - 1)}
-						disabled={currentPage === 1}
-					/>
-					{[...Array(totalPages)].map((_, index) => (
-						<Pagination.Item
-							key={index + 1}
-							active={index + 1 === currentPage}
-							onClick={() => setCurrentPage(index + 1)}
-						>
-							{index + 1}
-						</Pagination.Item>
-					))}
-					<Pagination.Next
-						onClick={() => setCurrentPage(currentPage + 1)}
-						disabled={currentPage === totalPages}
-					/>
-					<Pagination.Last
-						onClick={() => setCurrentPage(totalPages)}
-						disabled={currentPage === totalPages}
-					/>
-				</Pagination>
 			</div>
-
-			{/* Modal Chi Tiết Danh Mục */}
-			<Modal
-				show={showCategoryModal}
-				onHide={() => setShowCategoryModal(false)}
-			>
-				<Modal.Header closeButton>
-					<Modal.Title>Chi Tiết Danh Mục</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<Form>
-						<Form.Group>
-							<Form.Label>Tiêu Đề</Form.Label>
-							<Form.Control
-								type="text"
-								value={categoryForm.title}
-								onChange={(e) =>
-									setCategoryForm({ ...categoryForm, title: e.target.value })
-								}
-							/>
-						</Form.Group>
-						<Form.Group>
-							<Form.Label>Mô Tả</Form.Label>
-							<Form.Control
-								as="textarea"
-								value={categoryForm.description}
-								onChange={(e) =>
-									setCategoryForm({
-										...categoryForm,
-										description: e.target.value,
-									})
-								}
-							/>
-						</Form.Group>
-					</Form>
-				</Modal.Body>
-				<Modal.Footer>
-					<Button
-						variant="secondary"
-						onClick={() => setShowDeleteConfirm(true)}
-					>
-						Xóa
-					</Button>
-					<Button variant="primary">Lưu Thay Đổi</Button>
-				</Modal.Footer>
-			</Modal>
-
-			{/* Modal Xác Nhận Xóa */}
-			<Modal
-				show={showDeleteConfirm}
-				onHide={() => setShowDeleteConfirm(false)}
-			>
-				<Modal.Header closeButton>
-					<Modal.Title>Xác Nhận Xóa</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>Bạn có chắc chắn muốn xóa danh mục này không?</Modal.Body>
-				<Modal.Footer>
-					<Button
-						variant="secondary"
-						onClick={() => setShowDeleteConfirm(false)}
-					>
-						Hủy
-					</Button>
-					<Button variant="danger" onClick={handleDeleteCategory}>
-						Xóa
-					</Button>
-				</Modal.Footer>
-			</Modal>
 		</div>
 	);
 };

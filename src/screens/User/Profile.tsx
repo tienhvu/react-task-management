@@ -13,15 +13,7 @@ import { RootState } from "~/store/store";
 
 const Profile = () => {
 	const { error, user } = useSelector((state: RootState) => state.auth);
-	// const [isEditing, setIsEditing] = useState(false);
-	// const [isChangingPassword, setIsChangingPassword] = useState(false);
 	const navigate = useNavigate();
-
-	// const handleBack = () => {
-	// 	setIsChangingPassword(false);
-	// 	setIsEditing(false);
-	// };
-
 	if (!user?.id) {
 		return (
 			<Container className="mt-5">
