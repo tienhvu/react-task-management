@@ -9,7 +9,6 @@ import {
 	Form,
 	Button,
 	Table,
-	Alert,
 } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -39,9 +38,7 @@ const categorySchema = Yup.object().shape({
 
 const CategoryPage = () => {
 	const dispatch = useDispatch<AppDispatch>();
-	const { categories, error } = useSelector(
-		(state: RootState) => state.category,
-	);
+	const { categories } = useSelector((state: RootState) => state.category);
 	const { showToast } = useToast();
 
 	const {
@@ -94,7 +91,6 @@ const CategoryPage = () => {
 					<Card>
 						<Card.Header as="h3">Thêm Danh Mục Mới</Card.Header>
 						<Card.Body>
-							{error && <Alert variant="danger">{error}</Alert>}
 							<Form onSubmit={handleSubmit(handleAddCategory)}>
 								<Form.Group controlId="categoryName" className="mb-3">
 									<Form.Label>Tên Danh Mục</Form.Label>
