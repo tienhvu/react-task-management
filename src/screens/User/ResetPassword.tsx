@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import { Button, Form, Row, Col, Container, Card } from "react-bootstrap";
+import {
+	Button,
+	Form,
+	Row,
+	Col,
+	Container,
+	Card,
+	Alert,
+} from "react-bootstrap";
 import { useToast } from "~/components/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "~/store/store";
@@ -12,7 +20,7 @@ import {
 	resetPassword,
 } from "~/store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
-import { PATH } from "~/utils/constants/constants";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 const passwordResetSchema = Yup.object().shape({
 	currentPassword: Yup.string().required(
@@ -58,9 +66,11 @@ const ResetPassword = () => {
 	const currentPasswordValue = watch("currentPassword");
 	const newPasswordValue = watch("newPassword");
 
-	const { user, refreshToken: currentRefreshToken } = useSelector(
-		(state: RootState) => state.auth,
-	);
+	const {
+		user,
+		refreshToken: currentRefreshToken,
+		error,
+	} = useSelector((state: RootState) => state.auth);
 
 	useEffect(() => {
 		if (currentPasswordValue && newPasswordValue) {
@@ -76,7 +86,7 @@ const ResetPassword = () => {
 
 	const backToProfile = () => {
 		dispatch(clearError());
-		navigate(PATH.PROFILE);
+		navigate(SCREEN_PATHS.PROFILE);
 	};
 
 	const onPasswordReset = async (passwordData: PasswordData) => {
@@ -102,6 +112,7 @@ const ResetPassword = () => {
 				}
 
 				showToast("Đổi mật khẩu thành công!");
+				backToProfile();
 			} else {
 				throw new Error("Password reset failed");
 			}
@@ -121,6 +132,7 @@ const ResetPassword = () => {
 						<Card.Header as="h3">Chỉnh sửa thông tin</Card.Header>
 						<Card.Body>
 							<Form onSubmit={handleSubmit(onPasswordReset)}>
+								{error && <Alert variant="danger">{error}</Alert>}
 								<Row>
 									<Col>
 										<Form.Group className="mb-3">

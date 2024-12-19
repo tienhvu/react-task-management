@@ -32,6 +32,7 @@ import {
 } from "~/services/categoryApi";
 import useDebounce from "~/hook/useDebounce";
 
+// Validation schema for category form
 const categorySchema = Yup.object().shape({
 	name: Yup.string()
 		.trim()
@@ -42,11 +43,6 @@ const categorySchema = Yup.object().shape({
 		.max(500, "Mô tả không được vượt quá 500 ký tự"),
 });
 
-const defaultFormValues = {
-	name: "",
-	description: "",
-};
-
 const CategoryPage = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { categories, error, selectedCategory } = useSelector(
@@ -55,26 +51,40 @@ const CategoryPage = () => {
 	const { showToast } = useToast();
 
 	const {
-		register,
-		handleSubmit,
-		reset,
-		watch,
-		formState: { errors, isValid },
+		register: registerAdd,
+		handleSubmit: handleSubmitAdd,
+		reset: resetAdd,
+		formState: { errors: errorsAdd, isValid: isValidAdd },
 	} = useForm({
 		resolver: yupResolver(categorySchema),
 		mode: "onChange",
-		defaultValues: defaultFormValues,
+		defaultValues: { name: "", description: "" },
 	});
 
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	const {
+		register: registerEdit,
+		handleSubmit: handleSubmitEdit,
+		reset: resetEdit,
+		setValue: setValueEdit,
+		formState: { errors: errorsEdit, isValid: isValidEdit },
+	} = useForm({
+		resolver: yupResolver(categorySchema),
+		mode: "onChange",
+		defaultValues: { name: "", description: "" },
+	});
+
+	const [isAddSubmitting, setIsAddSubmitting] = useState(false);
+	const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const [showEditModal, setShowEditModal] = useState(false);
 	const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
 		null,
 	);
 
-	//Handle search and fetch data
+	// Search functionality
 	const [searchTerm, setSearchTerm] = useState("");
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
 	useEffect(() => {
 		if (debouncedSearchTerm) {
 			dispatch(searchCategories(debouncedSearchTerm));
@@ -87,40 +97,26 @@ const CategoryPage = () => {
 		setSearchTerm(e.target.value);
 	};
 
-	useEffect(() => {
-		if (selectedCategory) {
-			reset({
-				name: selectedCategory.name,
-				description: selectedCategory.description || "",
-			});
-		} else {
-			reset(defaultFormValues);
-		}
-	}, [selectedCategory, reset]);
-
-	const isFormModified = () => {
-		const currentValues = watch();
-		return (
-			(selectedCategory &&
-				(selectedCategory.name !== currentValues.name ||
-					selectedCategory.description !== currentValues.description)) ||
-			(!selectedCategory && (currentValues.name || currentValues.description))
-		);
-	};
-
+	// Add Category Handler
 	const handleAddCategory = async (data: CreateCategoryRequest) => {
-		setIsSubmitting(true);
+		setIsAddSubmitting(true);
 		try {
 			await dispatch(addCategory(data)).unwrap();
-			handleSuccessfulAction();
+			showToast("Thêm danh mục thành công");
+			resetAdd();
 		} catch (error) {
-			handleErrorAction("Thêm danh mục thất bại!");
+			showToast("Thêm danh mục thất bại!", "danger");
+		} finally {
+			setIsAddSubmitting(false);
+			dispatch(getCategories());
 		}
 	};
 
+	// Update Category Handler
 	const handleUpdateCategory = async (data: UpdateCategoryRequest) => {
 		if (!selectedCategory) return;
-		setIsSubmitting(true);
+
+		setIsEditSubmitting(true);
 		try {
 			await dispatch(
 				updateCategory({
@@ -128,12 +124,18 @@ const CategoryPage = () => {
 					categoryData: data,
 				}),
 			).unwrap();
-			handleSuccessfulAction();
+
+			showToast("Cập nhật danh mục thành công");
+			handleEditClose();
 		} catch (error) {
-			handleErrorAction(error as string);
+			showToast("Cập nhật danh mục thất bại!", "danger");
+		} finally {
+			setIsEditSubmitting(false);
+			dispatch(getCategories());
 		}
 	};
 
+	// Delete Category Handler
 	const confirmDeleteCategory = (category: Category) => {
 		setCategoryToDelete(category);
 		setShowDeleteModal(true);
@@ -141,69 +143,54 @@ const CategoryPage = () => {
 
 	const handleDeleteCategory = async () => {
 		if (!categoryToDelete) return;
+
 		try {
 			await dispatch(deleteCategory(categoryToDelete.id)).unwrap();
 			showToast("Xóa danh mục thành công");
-			dispatch(getCategories());
 		} catch (error) {
-			handleErrorAction(error as string);
+			showToast("Xóa danh mục thất bại!", "danger");
 		} finally {
 			setShowDeleteModal(false);
 			setCategoryToDelete(null);
+			dispatch(getCategories());
 		}
 	};
 
+	// Select Category for Editing
 	const handleSelectCategory = (category: Category) => {
 		dispatch(selectCategory(category));
+		setValueEdit("name", category.name);
+		setValueEdit("description", category.description || "");
+		setShowEditModal(true);
 	};
 
-	const handleCancelEdit = () => {
+	// Close Edit Modal
+	const handleEditClose = () => {
 		dispatch(selectCategory(null));
-		reset(defaultFormValues);
-	};
-
-	//Functions handle notification
-	const handleSuccessfulAction = () => {
-		showToast(
-			selectedCategory
-				? "Cập nhật danh mục thành công"
-				: "Thêm danh mục thành công",
-		);
-		dispatch(selectCategory(null));
-		reset(defaultFormValues);
-		setIsSubmitting(false);
-	};
-
-	const handleErrorAction = (errorMessage: string) => {
-		showToast(errorMessage, "danger");
-		setIsSubmitting(false);
+		resetEdit();
+		setShowEditModal(false);
 	};
 
 	return (
 		<Container className="mt-5">
+			{/* Add Category Form */}
 			<Row>
 				<Col md={12}>
 					<Card>
-						<Card.Header as="h3">
-							{selectedCategory ? "Chỉnh Sửa Danh Mục" : "Thêm Danh Mục Mới"}
-						</Card.Header>
+						<Card.Header as="h3">Thêm Danh Mục Mới</Card.Header>
 						<Card.Body>
 							{error && <Alert variant="danger">{error}</Alert>}
-							<Form
-								onSubmit={handleSubmit(
-									selectedCategory ? handleUpdateCategory : handleAddCategory,
-								)}
-							>
+							<Form onSubmit={handleSubmitAdd(handleAddCategory)}>
 								<Form.Group controlId="categoryName" className="mb-3">
 									<Form.Label>Tên Danh Mục</Form.Label>
 									<Form.Control
 										type="text"
-										{...register("name")}
-										isInvalid={!!errors.name}
+										{...registerAdd("name")}
+										isInvalid={!!errorsAdd.name}
 										placeholder="Nhập tên danh mục"
 									/>
 									<Form.Control.Feedback type="invalid">
-										{errors.name?.message}
+										{errorsAdd.name?.message}
 									</Form.Control.Feedback>
 								</Form.Group>
 
@@ -211,41 +198,30 @@ const CategoryPage = () => {
 									<Form.Label>Mô Tả</Form.Label>
 									<Form.Control
 										as="textarea"
-										{...register("description")}
-										isInvalid={!!errors.description}
+										{...registerAdd("description")}
+										isInvalid={!!errorsAdd.description}
 										placeholder="Nhập mô tả danh mục (tùy chọn)"
 										rows={3}
 									/>
 									<Form.Control.Feedback type="invalid">
-										{errors.description?.message}
+										{errorsAdd.description?.message}
 									</Form.Control.Feedback>
 								</Form.Group>
 
-								<div className="d-flex justify-content-between">
-									<Button
-										variant="primary"
-										type="submit"
-										disabled={isSubmitting || !isFormModified() || !isValid}
-									>
-										{isSubmitting
-											? "Đang xử lý..."
-											: selectedCategory
-												? "Cập Nhật"
-												: "Thêm Mới"}
-									</Button>
-									{selectedCategory && (
-										<Button variant="secondary" onClick={handleCancelEdit}>
-											Hủy
-										</Button>
-									)}
-								</div>
+								<Button
+									variant="primary"
+									type="submit"
+									disabled={isAddSubmitting || !isValidAdd}
+								>
+									{isAddSubmitting ? "Đang xử lý..." : "Thêm Mới"}
+								</Button>
 							</Form>
 						</Card.Body>
 					</Card>
 				</Col>
 			</Row>
 
-			{/* Danh sách danh mục */}
+			{/* Category List */}
 			<Row className="mt-5">
 				<Col md={12}>
 					<Card>
@@ -295,7 +271,52 @@ const CategoryPage = () => {
 				</Col>
 			</Row>
 
-			{/* Modal xác nhận xóa */}
+			{/* Edit Category Modal */}
+			<Modal show={showEditModal} onHide={handleEditClose}>
+				<Modal.Header closeButton>
+					<Modal.Title>Chỉnh sửa danh mục</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<Form onSubmit={handleSubmitEdit(handleUpdateCategory)}>
+						<Form.Group controlId="editCategoryName" className="mb-3">
+							<Form.Label>Tên Danh Mục</Form.Label>
+							<Form.Control
+								type="text"
+								{...registerEdit("name")}
+								isInvalid={!!errorsEdit.name}
+								placeholder="Nhập tên danh mục"
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errorsEdit.name?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
+
+						<Form.Group controlId="editCategoryDescription" className="mb-3">
+							<Form.Label>Mô Tả</Form.Label>
+							<Form.Control
+								as="textarea"
+								{...registerEdit("description")}
+								isInvalid={!!errorsEdit.description}
+								placeholder="Nhập mô tả danh mục (tùy chọn)"
+								rows={3}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errorsEdit.description?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
+
+						<Button
+							variant="primary"
+							type="submit"
+							disabled={isEditSubmitting || !isValidEdit}
+						>
+							{isEditSubmitting ? "Đang xử lý..." : "Cập Nhật"}
+						</Button>
+					</Form>
+				</Modal.Body>
+			</Modal>
+
+			{/* Delete Confirmation Modal */}
 			<Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
 				<Modal.Header closeButton>
 					<Modal.Title>Xác Nhận Xóa</Modal.Title>

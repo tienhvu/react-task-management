@@ -15,7 +15,7 @@ import { useToast } from "~/components/Toast";
 import { UpdateUserRequest } from "~/services/userApi";
 import { clearError, updateUser } from "~/store/slices/authSlice";
 import { AppDispatch, RootState } from "~/store/store";
-import { PATH } from "~/utils/constants/constants";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 import yup from "~/validations/schema/yup";
 
 const profileUpdateSchema = yup.object().shape({
@@ -45,7 +45,7 @@ const ProfileEdit = () => {
 
 	const backToProfile = () => {
 		dispatch(clearError());
-		navigate(PATH.PROFILE);
+		navigate(SCREEN_PATHS.PROFILE);
 	};
 
 	const updateProfile = async (data: UpdateUserRequest) => {
@@ -58,6 +58,7 @@ const ProfileEdit = () => {
 		);
 		if (updateUser.fulfilled.match(result)) {
 			showToast("Cập nhật người dùng thành công!");
+			backToProfile();
 		} else {
 			showToast("Cập nhật người dùng thất bại!", "danger");
 		}

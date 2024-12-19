@@ -7,7 +7,7 @@ import PrivateLayout from "~/layouts/PrivateLayout";
 import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
 import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
-import Task from "~/screens/Tasks/Task";
+import Task from "~/screens/Tasks/TaskList";
 import Profile from "~/screens/User/Profile";
 import ProfileEdit from "~/screens/User/ProfileEdit";
 import ResetPassword from "~/screens/User/ResetPassword";
@@ -35,6 +35,12 @@ const AppRoutes: React.FC = () => {
 		{
 			path: "/profile/reset-password",
 			component: ResetPassword,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: "/profile",
+			component: Profile,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},

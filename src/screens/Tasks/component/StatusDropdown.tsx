@@ -3,14 +3,14 @@ import { Dropdown } from "react-bootstrap";
 import { TaskStatus } from "~/types/StatusEnum";
 
 interface StatusDropdownProps {
-	selectedStatus?: TaskStatus;
+	selectedStatus: TaskStatus;
 	changeStatus: (status: TaskStatus) => void;
 }
 
-export const StatusDropdown = ({
+export const StatusDropdown: React.FC<StatusDropdownProps> = ({
 	selectedStatus,
 	changeStatus,
-}: StatusDropdownProps) => {
+}) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const statuses = Object.values(TaskStatus);
 
@@ -24,7 +24,7 @@ export const StatusDropdown = ({
 				{selectedStatus || "Chọn trạng thái"}
 			</Dropdown.Toggle>
 
-			<Dropdown.Menu className="w-100">
+			<Dropdown.Menu>
 				{statuses.map((status) => (
 					<Dropdown.Item
 						key={status}
