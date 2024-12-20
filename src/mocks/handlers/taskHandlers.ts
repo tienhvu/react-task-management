@@ -19,15 +19,12 @@ type UpdateTaskRequest = {
 	status?: TaskStatus;
 };
 
-type PaginatedTasksResponse = {
-	data: {
-		tasks: Task[];
-		total: number;
-		page: number;
-		limit: number;
-	};
-	message: string;
-};
+export type PaginatedTasksResponse = Response<{
+	tasks: Task[];
+	total: number;
+	page: number;
+	limit: number;
+}>;
 
 const tasks: Task[] = JSON.parse(localStorage.getItem("tasks") || "[]");
 
@@ -130,11 +127,12 @@ export const taskHandlers = [
 			const query = urlObj.searchParams.get("query")?.toLowerCase();
 			const page = parseInt(urlObj.searchParams.get("page") || "1", 10);
 			const limit = parseInt(urlObj.searchParams.get("limit") || "10", 10);
-
+			// Filter tasks by query if provided
 			const filteredTasks = query
 				? tasks.filter((task) => task.title.toLowerCase().includes(query))
 				: tasks;
 
+			// Apply pagination
 			const startIndex = (page - 1) * limit;
 			const endIndex = startIndex + limit;
 			const paginatedTasks = filteredTasks.slice(startIndex, endIndex);

@@ -7,7 +7,7 @@ import PrivateLayout from "~/layouts/PrivateLayout";
 import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
 import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
-import Task from "~/screens/Tasks/TaskList";
+import TaskList from "~/screens/Tasks/TaskListPage";
 import Profile from "~/screens/User/Profile";
 import ProfileEdit from "~/screens/User/ProfileEdit";
 import ResetPassword from "~/screens/User/ResetPassword";
@@ -17,7 +17,7 @@ const AppRoutes: React.FC = () => {
 	const routeConfigs: RouteConfig[] = [
 		{
 			path: SCREEN_PATHS.TASK,
-			component: Task,
+			component: TaskList,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},

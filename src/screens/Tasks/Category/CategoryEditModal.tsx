@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from "react";
+import React, { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -45,6 +45,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 		defaultValues: { name: "", description: "" },
 	});
 
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	React.useEffect(() => {
 		if (isOpen) {
 			setValue("name", category.name);
@@ -53,6 +54,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 	}, [isOpen, category, setValue]);
 
 	const handleUpdateCategory = async (data: UpdateCategoryRequest) => {
+		setIsSubmitting(true);
 		try {
 			await dispatch(
 				updateCategory({
@@ -66,6 +68,8 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 			onClose();
 		} catch (error) {
 			showToast("Cập nhật danh mục thất bại!", "danger");
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -104,7 +108,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 					</Form.Group>
 
 					<Button variant="primary" type="submit" disabled={!isValid}>
-						Cập Nhật
+						{isSubmitting ? "Đang cập nhật..." : "Cập nhật"}
 					</Button>
 				</Form>
 			</Modal.Body>
