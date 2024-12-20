@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Form, Table } from "react-bootstrap";
-import { useForm, Controller } from "react-hook-form";
-import { Task } from "~/types/Task";
-import { Category } from "~/types/Category";
-import { TaskStatus } from "~/types/StatusEnum";
+import { Button, Form, Modal, Table } from "react-bootstrap";
+import { Controller, useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { useToast } from "~/components/Toast";
+import useDebounce from "~/hook/useDebounce";
 import { CreateTaskRequest, UpdateTaskRequest } from "~/services/taskApi";
 import { getCategories, searchCategories } from "~/store/slices/categorySlice";
-import { useDispatch, useSelector } from "react-redux";
+import { addTask, updateTask } from "~/store/slices/taskSlice";
 import { AppDispatch, RootState } from "~/store/store";
-import useDebounce from "~/hook/useDebounce";
+import { Category } from "~/types/Category";
+import { TaskStatus } from "~/types/StatusEnum";
+import { Task } from "~/types/Task";
 import { SearchBar } from "./SearchBar";
-import { addTask, getTasks, updateTask } from "~/store/slices/taskSlice";
-import { useToast } from "~/components/Toast";
 
 interface TaskFormProps {
 	show: boolean;
 	task?: Task | null;
 	categories: Category[];
+	onSuccess: () => Promise<void>;
 	onHide: () => void;
 }
 
@@ -25,20 +26,22 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 	show,
 	task,
 	categories,
+	onSuccess,
 	onHide,
 }) => {
 	const { showToast } = useToast();
 	const [searchTerm, setSearchTerm] = useState("");
-	const [isProcessing, setIsProcessing] = useState(false);
 	const [isSearching, setIsSearching] = useState(false);
 	const dispatch = useDispatch<AppDispatch>();
-	const { page, limit } = useSelector((state: RootState) => state.task);
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 	const isEditMode = !!task;
-
-	const { control, handleSubmit, reset } = useForm<
-		CreateTaskRequest | UpdateTaskRequest
-	>({
+	const { isLoading } = useSelector((state: RootState) => state.task);
+	const {
+		control,
+		handleSubmit,
+		reset,
+		formState: { isDirty },
+	} = useForm<CreateTaskRequest | UpdateTaskRequest>({
 		defaultValues: {
 			title: "",
 			category: [],
@@ -76,36 +79,34 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 		setIsSearching(!!query);
 	};
 
-	const handleSave = async (data: CreateTaskRequest | UpdateTaskRequest) => {
-		setIsProcessing(true);
+	const onSubmit = async (data: CreateTaskRequest | UpdateTaskRequest) => {
 		try {
 			if (isEditMode && task) {
 				await dispatch(
-					updateTask({ taskId: task.id, taskData: data as UpdateTaskRequest }),
-				);
-				dispatch(getTasks({ page, limit }));
-				showToast("Cập nhật task thành công!");
+					updateTask({
+						taskId: task.id,
+						taskData: data as UpdateTaskRequest,
+					}),
+				).unwrap();
+				await onSuccess();
+				showToast("Task update successfully!");
 			} else {
-				await dispatch(addTask(data as CreateTaskRequest));
-				showToast("Thêm task thành công!");
+				await dispatch(addTask(data as CreateTaskRequest)).unwrap();
+				await onSuccess();
+				showToast("Task create successfully!");
+				onHide();
 			}
-			onHide();
 		} catch (error) {
-			showToast(
-				`Có lỗi xảy ra khi ${isEditMode ? "cập nhật" : "thêm"} task!`,
-				"danger",
-			);
-		} finally {
-			setIsProcessing(false);
+			showToast(`Error occurred during task operation!`, "danger");
 		}
 	};
 
 	return (
 		<Modal show={show} onHide={onHide} size="lg">
-			<Modal.Header closeButton className="bg-primary text-white">
+			<Modal.Header closeButton={!isLoading} className="bg-primary text-white">
 				<Modal.Title>{isEditMode ? "Edit Task" : "Add Task"}</Modal.Title>
 			</Modal.Header>
-			<Form>
+			<Form onSubmit={handleSubmit(onSubmit)}>
 				<Modal.Body className="p-4">
 					<Form.Group className="mb-4">
 						<Form.Label>Title</Form.Label>
@@ -224,15 +225,15 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 				</Modal.Body>
 
 				<Modal.Footer>
-					<Button variant="secondary" onClick={onHide}>
+					<Button variant="secondary" onClick={onHide} disabled={isLoading}>
 						Cancel
 					</Button>
 					<Button
 						variant="primary"
-						onClick={handleSubmit(handleSave)}
-						disabled={isProcessing}
+						disabled={isLoading || !isDirty}
+						type="submit"
 					>
-						{isProcessing
+						{isLoading
 							? isEditMode
 								? "Updating..."
 								: "Adding..."

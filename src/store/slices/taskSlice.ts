@@ -75,19 +75,6 @@ export const deleteTask = createAsyncThunk(
 	},
 );
 
-// export const getTasks = createAsyncThunk(
-// 	"task/getAll",
-// 	async (page: number, { rejectWithValue }) => {
-// 		try {
-// 			const response = await get(page);
-// 			return response.data;
-// 		} catch (error: unknown) {
-// 			const err = error as { response?: { data?: { message?: string } } };
-// 			return rejectWithValue(err.response?.data?.message ?? "Get tasks failed");
-// 		}
-// 	},
-// );
-
 export const getTasks = createAsyncThunk(
 	"task/getTasks",
 	async (

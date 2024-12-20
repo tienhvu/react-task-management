@@ -24,6 +24,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, categories }) => {
 	const { showToast } = useToast();
 	const dispatch = useDispatch<AppDispatch>();
 
+	const handleFormSuccess = async () => {
+		await dispatch(getTasks({ page: page, limit: limit }));
+		setShowEditModal(false);
+		setEditTask(null);
+	};
+
 	const handleEdit = (task: Task) => {
 		setEditTask(task);
 		setShowEditModal(true);
@@ -64,7 +70,6 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, categories }) => {
 			.filter(Boolean)
 			.join(", ");
 	};
-
 	return (
 		<>
 			<Table
@@ -137,30 +142,18 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, categories }) => {
 					+ Thêm Task Mới
 				</Button>
 			</div>
-			{/* <TaskAddForm
-				show={showAddModal}
-				categories={categories}
-				onHide={() => setShowAddModal(false)}
-			/>
 
-			<TaskEditForm
-				show={showEditModal}
-				task={editTask}
-				categories={categories}
-				onHide={() => {
-					setShowEditModal(false);
-					setEditTask(null);
-				}}
-			/> */}
 			<TaskForm
 				show={showAddModal}
 				categories={categories}
+				onSuccess={handleFormSuccess}
 				onHide={() => setShowAddModal(false)}
 			/>
 			<TaskForm
 				show={showEditModal}
 				task={editTask}
 				categories={categories}
+				onSuccess={handleFormSuccess}
 				onHide={() => {
 					setShowEditModal(false);
 					setEditTask(null);

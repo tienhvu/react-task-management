@@ -16,10 +16,7 @@ const TaskList: React.FC = () => {
 
 	const dispatch = useDispatch<AppDispatch>();
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-	const { tasks, total, isLoading } = useSelector(
-		(state: RootState) => state.task,
-	);
+	const { tasks, total } = useSelector((state: RootState) => state.task);
 	const { categories } = useSelector((state: RootState) => state.category);
 
 	const totalPages = Math.ceil(total / pageSize);
@@ -55,26 +52,21 @@ const TaskList: React.FC = () => {
 		setPageSize(newPageSize);
 		setCurrentPage(1);
 	};
-
 	return (
 		<Container>
 			<h1 className="my-4">Task List</h1>
 			<SearchBar onSearch={handleSearch} searchType="task" />
-			{isLoading ? (
-				<p>Loading...</p>
-			) : (
-				<>
-					<TaskTable tasks={tasks} categories={categories} />
-					<Pagination
-						totalPages={totalPages}
-						currentPage={currentPage}
-						onPageChange={handlePageChange}
-						totalItems={total}
-						pageSize={pageSize}
-						onPageSizeChange={handlePageSizeChange}
-					/>
-				</>
-			)}
+			<>
+				<TaskTable tasks={tasks} categories={categories} />
+				<Pagination
+					totalPages={totalPages}
+					currentPage={currentPage}
+					onPageChange={handlePageChange}
+					totalItems={total}
+					pageSize={pageSize}
+					onPageSizeChange={handlePageSizeChange}
+				/>
+			</>
 		</Container>
 	);
 };
