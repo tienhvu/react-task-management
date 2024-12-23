@@ -8,6 +8,7 @@ interface TaskItemProps {
 	index: number;
 	onUpdate: () => void;
 	onDelete: () => void;
+	disabled: boolean;
 }
 
 export const TaskItem: React.FC<TaskItemProps> = ({
@@ -15,6 +16,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 	index,
 	onUpdate,
 	onDelete,
+	disabled,
 }) => (
 	<tr>
 		<td>{index}</td>
@@ -26,11 +28,21 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 		<td>{format(new Date(task.updatedAt), "HH:mm:ss dd/MM/yyyy")}</td>
 		<td>
 			<div className="d-flex gap-2">
-				<Button variant="primary" size="sm" onClick={onUpdate}>
-					Sửa
+				<Button
+					variant="primary"
+					onClick={onUpdate}
+					size="sm"
+					disabled={disabled}
+				>
+					Edit
 				</Button>
-				<Button variant="danger" size="sm" onClick={onDelete}>
-					Xóa
+				<Button
+					variant="danger"
+					onClick={onDelete}
+					size="sm"
+					disabled={disabled}
+				>
+					Delete
 				</Button>
 			</div>
 		</td>

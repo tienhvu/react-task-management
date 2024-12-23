@@ -22,7 +22,7 @@ interface TaskFormProps {
 	onSave: (data: TaskFormData) => void;
 	onCancel: () => void;
 	index: number;
-	task?: Task;
+	task?: Task | null;
 }
 
 export const TaskForm: React.FC<TaskFormProps> = ({
@@ -91,12 +91,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 						onClick={handleSubmit((data) => {
 							onSave(data);
 						})}
+						size="sm"
 						disabled={!isDirty || !isValid || !!isLoading}
 					>
-						{isLoading ? "Đang lưu..." : "Lưu"}
+						{isLoading ? "Saving..." : "Save"}
 					</Button>
-					<Button variant="secondary" onClick={onCancel}>
-						Hủy
+					<Button variant="secondary" size="sm" onClick={onCancel}>
+						Cancel
 					</Button>
 				</div>
 			</td>

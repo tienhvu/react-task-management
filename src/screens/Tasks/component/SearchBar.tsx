@@ -1,31 +1,44 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
+import useDebounce from "~/hook/useDebounce";
 
 interface SearchBarProps {
-	onSearch: (query: string, type: "task" | "category") => void;
-	searchType: "task" | "category";
+	onSearch: (query: string) => void;
+	onReset: () => void;
+	placeholder?: string;
+	debounceTime?: number;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+const SearchBar: React.FC<SearchBarProps> = ({
 	onSearch,
-	searchType,
+	onReset,
+	placeholder,
+	debounceTime = 500,
 }) => {
-	const [query, setQuery] = useState("");
+	const [searchTerm, setSearchTerm] = useState("");
+	const debouncedSearchTerm = useDebounce(searchTerm, debounceTime);
 
-	const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const searchQuery = e.target.value;
-		setQuery(searchQuery);
-		onSearch(searchQuery, searchType);
+	useEffect(() => {
+		if (debouncedSearchTerm.trim() === "") {
+			onReset();
+		} else {
+			onSearch(debouncedSearchTerm);
+		}
+	}, [debouncedSearchTerm]);
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchTerm(e.target.value);
 	};
 
 	return (
-		<div className="mb-3">
-			<Form.Control
-				type="text"
-				placeholder={`Search ${searchType}...`}
-				value={query}
-				onChange={handleSearch}
-			/>
-		</div>
+		<Form.Control
+			type="text"
+			placeholder={placeholder || "Search..."}
+			value={searchTerm}
+			onChange={handleChange}
+		/>
 	);
 };
+
+export default SearchBar;

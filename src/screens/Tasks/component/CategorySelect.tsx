@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import {
 	Button,
@@ -8,7 +9,6 @@ import {
 	Table,
 } from "react-bootstrap";
 import { Category } from "~/types/Category";
-import { format } from "date-fns";
 
 interface CategorySelectProps {
 	categories: Category[];
@@ -79,31 +79,30 @@ export const CategorySelect = ({
 				<Dropdown.Toggle variant="outline-secondary" className="w-100">
 					{selectedCategories.length > 0
 						? selectedCategories.map((cat) => cat.name).join(", ")
-						: "Chọn danh mục"}
+						: "Select category"}
 				</Dropdown.Toggle>
 			</Dropdown>
 
 			<Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
 				<Modal.Header closeButton>
-					<Modal.Title>Chọn Danh Mục Chi Tiết</Modal.Title>
+					<Modal.Title>Select category detail</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
 					<InputGroup className="mb-3">
 						<Form.Control
-							placeholder="Tìm kiếm danh mục"
+							placeholder="Search category..."
 							value={searchTerm}
 							onChange={handleSearch}
 						/>
 					</InputGroup>
-
 					<Table striped bordered hover>
 						<thead>
 							<tr>
-								<th>Chọn</th>
-								<th>Tên Danh Mục</th>
-								<th>Mô Tả</th>
-								<th>Thời gian thêm</th>
-								<th>Thời gian cập nhật</th>
+								<th>Select</th>
+								<th>Title</th>
+								<th>Description</th>
+								<th>Created At</th>
+								<th>Updated At</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -148,10 +147,10 @@ export const CategorySelect = ({
 				</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={() => setShowModal(false)}>
-						Đóng
+						Cancel
 					</Button>
 					<Button variant="primary" onClick={handleConfirm}>
-						Xác Nhận
+						Confirm
 					</Button>
 				</Modal.Footer>
 			</Modal>

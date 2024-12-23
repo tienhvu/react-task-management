@@ -11,7 +11,6 @@ import {
 import { AppDispatch } from "~/store/store";
 import { Category } from "~/types/Category";
 import { Task } from "~/types/Task";
-
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -40,8 +39,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 	currentMeta,
 }) => {
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
-	const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-	const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+	const [taskSelected, setTaskSelected] = useState<Task | null>(null);
+	const [isEditing, setIsEditing] = useState(false);
 	const [isAddingNewTask, setIsAddingNewTask] = useState(false);
 
 	const dispatch = useDispatch<AppDispatch>();
@@ -65,18 +64,29 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 		});
 	};
 
-	const handleUpdate = (task: Task) => {
-		setTaskToEdit(task);
-		setIsAddingNewTask(false);
+	const onAddNew = () => {
+		setIsAddingNewTask(true);
+		resetForm();
+	};
+
+	const onEdit = (task: Task) => {
+		setTaskSelected(task);
+		setIsEditing(true);
 		resetForm(task);
+	};
+
+	const onDelete = (task: Task) => {
+		setTaskSelected(task);
+		setIsEditing(false);
+		setIsOpenDeleteModal(true);
 	};
 
 	const handleSave = async (data: UpdateTaskRequest | CreateTaskRequest) => {
 		try {
-			if (taskToEdit) {
+			if (taskSelected) {
 				await dispatch(
 					updateTask({
-						taskId: taskToEdit.id,
+						taskId: taskSelected.id,
 						taskData: data as UpdateTaskRequest,
 					}),
 				).unwrap();
@@ -93,34 +103,24 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 			handleCancel();
 		} catch (error) {
 			showToast(
-				`Có lỗi xảy ra khi ${taskToEdit ? "cập nhật" : "thêm mới"} task!`,
+				`Có lỗi xảy ra khi ${taskSelected ? "cập nhật" : "thêm mới"} task!`,
 				"danger",
 			);
 			console.error(error);
 		}
 	};
 
-	const handleAddNew = () => {
-		setIsAddingNewTask(true);
-		setTaskToEdit(null);
-		resetForm();
-	};
-
 	const handleCancel = () => {
-		setTaskToEdit(null);
+		setTaskSelected(null);
+		setIsEditing(false);
 		setIsAddingNewTask(false);
 		form.reset();
 	};
 
-	const handleDelete = (task: Task) => {
-		setTaskToDelete(task);
-		setIsOpenDeleteModal(true);
-	};
-
-	const handleConfirmDelete = async () => {
-		if (taskToDelete) {
+	const handleDelete = async () => {
+		if (taskSelected) {
 			try {
-				await dispatch(deleteTask(taskToDelete.id));
+				await dispatch(deleteTask(taskSelected.id));
 				dispatch(
 					getTasks({
 						page: currentMeta.page,
@@ -129,7 +129,6 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 				);
 				showToast("Xóa task thành công!");
 				setIsOpenDeleteModal(false);
-				setTaskToDelete(null);
 			} catch {
 				showToast("Có lỗi xảy ra khi xóa task!", "danger");
 			}
@@ -138,16 +137,21 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
 	return (
 		<>
-			<Table striped bordered hover>
+			<Table
+				striped
+				bordered
+				hover
+				style={{ tableLayout: "fixed", width: "100%" }}
+			>
 				<thead>
 					<tr>
-						<th>#</th>
-						<th>Title</th>
-						<th>Category</th>
-						<th>Status</th>
-						<th>Created At</th>
-						<th>Updated At</th>
-						<th>Actions</th>
+						<th style={{ width: "30px" }}>#</th>
+						<th style={{ width: "200px" }}>Title</th>
+						<th style={{ width: "200px" }}>Category</th>
+						<th style={{ width: "150px" }}>Status</th>
+						<th style={{ width: "150px" }}>Created At</th>
+						<th style={{ width: "150px" }}>Updated At</th>
+						<th style={{ width: "100px" }}>Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -161,7 +165,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 						/>
 					)}
 					{tasks.map((task, index) =>
-						taskToEdit?.id === task.id ? (
+						isEditing && taskSelected?.id === task.id ? (
 							<TaskForm
 								key={task.id}
 								form={form}
@@ -176,8 +180,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 								key={task.id}
 								task={task}
 								index={isAddingNewTask ? index + 2 : index + 1}
-								onUpdate={() => handleUpdate(task)}
-								onDelete={() => handleDelete(task)}
+								onUpdate={() => onEdit(task)}
+								onDelete={() => onDelete(task)}
+								disabled={isAddingNewTask}
 							/>
 						),
 					)}
@@ -186,21 +191,25 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 			<div className="d-flex justify-content-between mt-3">
 				<Button
 					variant="success"
-					onClick={handleAddNew}
-					disabled={!!isAddingNewTask || !!taskToEdit}
+					onClick={onAddNew}
+					disabled={!!isAddingNewTask || !!taskSelected}
 				>
-					+ Thêm Task Mới
+					+ Add new task
 				</Button>
 			</div>
 
-			<DeleteConfirmModal
-				isOpen={isOpenDeleteModal}
-				onClose={() => {
-					setIsOpenDeleteModal(false);
-				}}
-				onConfirm={handleConfirmDelete}
-				task={taskToDelete}
-			/>
+			{/* Modals xóa */}
+			{taskSelected && (
+				<DeleteConfirmModal
+					isOpen={isOpenDeleteModal}
+					onClose={() => {
+						setIsOpenDeleteModal(false);
+						setTaskSelected(null);
+					}}
+					onConfirm={handleDelete}
+					task={taskSelected}
+				/>
+			)}
 		</>
 	);
 };
