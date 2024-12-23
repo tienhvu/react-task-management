@@ -1,19 +1,37 @@
 import { useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
-import { useSelector } from "react-redux";
-import { RootState } from "~/store/store";
+import { useDispatch, useSelector } from "react-redux";
+import { getCategories, searchCategories } from "~/store/slices/categorySlice";
+import { AppDispatch, RootState } from "~/store/store";
 import { Category } from "~/types/Category";
-import SearchBar from "~/screens/Tasks/Category/SearchBar";
+import SearchBar from "../components/SearchBar";
 import AddCategory from "./AddCategory";
 import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
 
 const CategoryPage = () => {
+	const dispatch = useDispatch<AppDispatch>();
 	const { categories } = useSelector((state: RootState) => state.category);
-	const [isOpenEditCategoryModal, setIsOpenEditCategoryModal] =
-		useState<Category | null>(null);
-	const [isOpenDeleteCategoryModal, setIsOpenDeleteCategoryModal] =
-		useState<Category | null>(null);
+	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+	const [categorySelected, setCategorySelected] = useState<Category>();
+
+	const handleSearch = (query: string) => {
+		dispatch(searchCategories(query));
+	};
+
+	const handleReset = () => {
+		dispatch(getCategories());
+	};
+
+	const handleOpenModal = (type: "edit" | "delete", category: Category) => {
+		setCategorySelected(category);
+		if (type === "edit") {
+			setIsOpenEditModal(true);
+		} else if (type === "delete") {
+			setIsOpenDeleteModal(true);
+		}
+	};
 
 	return (
 		<Container className="mt-5">
@@ -29,7 +47,14 @@ const CategoryPage = () => {
 				<Col md={12}>
 					<Card>
 						<Card.Body>
-							<SearchBar />
+							{/* Thanh tìm kiếm */}
+							<SearchBar
+								onSearch={handleSearch}
+								onReset={handleReset}
+								placeholder="Tìm kiếm danh mục"
+							/>
+
+							{/* Bảng danh mục */}
 							<Table striped bordered hover className="mt-3">
 								<thead>
 									<tr>
@@ -48,14 +73,14 @@ const CategoryPage = () => {
 											<td>
 												<Button
 													variant="warning"
-													onClick={() => setIsOpenEditCategoryModal(category)}
+													onClick={() => handleOpenModal("edit", category)}
 													className="me-2"
 												>
 													Chỉnh Sửa
 												</Button>
 												<Button
 													variant="danger"
-													onClick={() => setIsOpenDeleteCategoryModal(category)}
+													onClick={() => handleOpenModal("delete", category)}
 												>
 													Xóa
 												</Button>
@@ -70,19 +95,19 @@ const CategoryPage = () => {
 			</Row>
 
 			{/* Modals */}
-			{isOpenEditCategoryModal && (
+			{isOpenEditModal && categorySelected && (
 				<CategoryEditModal
-					isOpen={!!isOpenEditCategoryModal}
-					category={isOpenEditCategoryModal}
-					onClose={() => setIsOpenEditCategoryModal(null)}
+					isOpen={isOpenEditModal}
+					category={categorySelected}
+					onClose={() => setIsOpenEditModal(false)}
 				/>
 			)}
 
-			{isOpenDeleteCategoryModal && (
+			{isOpenDeleteModal && categorySelected && (
 				<CategoryDeleteModal
-					isOpen={!!isOpenDeleteCategoryModal}
-					category={isOpenDeleteCategoryModal}
-					onClose={() => setIsOpenDeleteCategoryModal(null)}
+					isOpen={isOpenDeleteModal}
+					category={categorySelected}
+					onClose={() => setIsOpenDeleteModal(false)}
 				/>
 			)}
 		</Container>
