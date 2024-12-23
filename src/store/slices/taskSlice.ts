@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
 	add,
-	deleteTaskApi,
+	remove,
 	search,
 	update,
 	get,
@@ -12,18 +12,22 @@ import { Task } from "~/types/Task";
 
 interface TaskState {
 	tasks: Task[];
-	total: number;
-	page: number;
-	limit: number;
+	meta: {
+		total: number;
+		page: number;
+		limit: number;
+	};
 	isLoading: boolean;
 	error: string | null;
 }
 
 const initialState: TaskState = {
 	tasks: [],
-	total: 0,
-	page: 1,
-	limit: 10,
+	meta: {
+		total: 0,
+		page: 1,
+		limit: 10,
+	},
 	isLoading: false,
 	error: null,
 };
@@ -64,7 +68,7 @@ export const deleteTask = createAsyncThunk(
 	"task/delete",
 	async (taskId: string, { rejectWithValue }) => {
 		try {
-			await deleteTaskApi(taskId);
+			await remove(taskId);
 			return taskId;
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
@@ -83,7 +87,10 @@ export const getTasks = createAsyncThunk(
 	) => {
 		try {
 			const response = await get(page, limit);
-			return response.data;
+			return {
+				items: response.data.items,
+				meta: response.data.meta,
+			};
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(err.response?.data?.message ?? "Get tasks failed");
@@ -99,7 +106,10 @@ export const searchTasks = createAsyncThunk(
 	) => {
 		try {
 			const response = await search(query, page, limit);
-			return response.data;
+			return {
+				items: response.data.items,
+				meta: response.data.meta,
+			};
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(
@@ -160,16 +170,10 @@ const taskSlice = createSlice({
 				state.isLoading = false;
 				state.error = action.payload as string;
 			})
-			.addCase(searchTasks.pending, (state) => {
-				state.isLoading = true;
-				state.error = null;
-			})
 			.addCase(searchTasks.fulfilled, (state, action) => {
 				state.isLoading = false;
-				state.tasks = action.payload.tasks;
-				state.total = action.payload.total;
-				state.page = action.payload.page;
-				state.limit = action.payload.limit;
+				state.tasks = action.payload.items;
+				state.meta = action.payload.meta;
 			})
 			.addCase(searchTasks.rejected, (state, action) => {
 				state.isLoading = false;
@@ -181,10 +185,8 @@ const taskSlice = createSlice({
 			})
 			.addCase(getTasks.fulfilled, (state, action) => {
 				state.isLoading = false;
-				state.tasks = action.payload.tasks;
-				state.total = action.payload.total;
-				state.page = action.payload.page;
-				state.limit = action.payload.limit;
+				state.tasks = action.payload.items;
+				state.meta = action.payload.meta;
 			})
 			.addCase(getTasks.rejected, (state, action) => {
 				state.isLoading = false;

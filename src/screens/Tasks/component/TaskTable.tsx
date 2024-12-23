@@ -1,52 +1,134 @@
-import { Table, Button } from "react-bootstrap";
-import { Task } from "~/types/Task";
-import { Category } from "~/types/Category";
-import { useState } from "react";
-import { DeleteConfirmModal } from "./DeleteConfrmModal";
-import { useDispatch, useSelector } from "react-redux";
-import { deleteTask, getTasks } from "~/store/slices/taskSlice";
-import { AppDispatch, RootState } from "~/store/store";
+import React, { useState } from "react";
+import { Button, Table } from "react-bootstrap";
+import { useDispatch } from "react-redux";
 import { useToast } from "~/components/Toast";
-import { format } from "date-fns";
-import { TaskForm } from "./TaskForm";
+import {
+	addTask,
+	deleteTask,
+	getTasks,
+	updateTask,
+} from "~/store/slices/taskSlice";
+import { AppDispatch } from "~/store/store";
+import { Category } from "~/types/Category";
+import { Task } from "~/types/Task";
+
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { CreateTaskRequest, UpdateTaskRequest } from "~/services/taskApi";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { TaskForm, TaskFormData } from "./TaskForm";
+import { TaskItem } from "./TaskItem";
+
+const taskSchema = yup.object().shape({
+	title: yup.string().required("Tiêu đề không được để trống"),
+});
+
 interface TaskTableProps {
 	tasks: Task[];
 	categories: Category[];
+	currentMeta: {
+		page: number;
+		limit: number;
+		total: number;
+	};
 }
 
-export const TaskTable: React.FC<TaskTableProps> = ({ tasks, categories }) => {
-	const [editTask, setEditTask] = useState<Task | null>(null);
-	const [showEditModal, setShowEditModal] = useState(false);
-	const [showDeleteModal, setShowDeleteModal] = useState(false);
+export const TaskTable: React.FC<TaskTableProps> = ({
+	tasks,
+	categories,
+	currentMeta,
+}) => {
+	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-	const [showAddModal, setShowAddModal] = useState(false);
-	const { page, limit } = useSelector((state: RootState) => state.task);
-	const { showToast } = useToast();
-	const dispatch = useDispatch<AppDispatch>();
+	const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+	const [isAddingNewTask, setIsAddingNewTask] = useState(false);
 
-	const handleFormSuccess = async () => {
-		await dispatch(getTasks({ page: page, limit: limit }));
-		setShowEditModal(false);
-		setEditTask(null);
+	const dispatch = useDispatch<AppDispatch>();
+	const { showToast } = useToast();
+
+	const form = useForm<TaskFormData>({
+		resolver: yupResolver(taskSchema),
+		mode: "onChange",
+		defaultValues: {
+			title: "",
+			categories: [],
+			status: undefined,
+		},
+	});
+
+	const resetForm = (task?: Task) => {
+		form.reset({
+			title: task?.title || "",
+			categories: task?.categories || [],
+			status: task?.status || undefined,
+		});
 	};
 
-	const handleEdit = (task: Task) => {
-		setEditTask(task);
-		setShowEditModal(true);
+	const handleUpdate = (task: Task) => {
+		setTaskToEdit(task);
+		setIsAddingNewTask(false);
+		resetForm(task);
+	};
+
+	const handleSave = async (data: UpdateTaskRequest | CreateTaskRequest) => {
+		try {
+			if (taskToEdit) {
+				await dispatch(
+					updateTask({
+						taskId: taskToEdit.id,
+						taskData: data as UpdateTaskRequest,
+					}),
+				).unwrap();
+				await dispatch(
+					getTasks({ page: currentMeta.page, limit: currentMeta.limit }),
+				);
+				showToast("Cập nhật task thành công!");
+			} else {
+				await dispatch(addTask(data as CreateTaskRequest)).unwrap();
+				await dispatch(getTasks({ page: 1, limit: currentMeta.limit }));
+				showToast("Thêm task mới thành công!");
+			}
+
+			handleCancel();
+		} catch (error) {
+			showToast(
+				`Có lỗi xảy ra khi ${taskToEdit ? "cập nhật" : "thêm mới"} task!`,
+				"danger",
+			);
+			console.error(error);
+		}
+	};
+
+	const handleAddNew = () => {
+		setIsAddingNewTask(true);
+		setTaskToEdit(null);
+		resetForm();
+	};
+
+	const handleCancel = () => {
+		setTaskToEdit(null);
+		setIsAddingNewTask(false);
+		form.reset();
 	};
 
 	const handleDelete = (task: Task) => {
 		setTaskToDelete(task);
-		setShowDeleteModal(true);
+		setIsOpenDeleteModal(true);
 	};
 
 	const handleConfirmDelete = async () => {
 		if (taskToDelete) {
 			try {
 				await dispatch(deleteTask(taskToDelete.id));
-				dispatch(getTasks({ page: page, limit: limit }));
+				dispatch(
+					getTasks({
+						page: currentMeta.page,
+						limit: currentMeta.limit,
+					}),
+				);
 				showToast("Xóa task thành công!");
-				setShowDeleteModal(false);
+				setIsOpenDeleteModal(false);
 				setTaskToDelete(null);
 			} catch {
 				showToast("Có lỗi xảy ra khi xóa task!", "danger");
@@ -54,119 +136,70 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, categories }) => {
 		}
 	};
 
-	const handleAddTask = () => {
-		setShowAddModal(true);
-	};
-
-	const getCategoryNames = (
-		categoryIds: string[],
-		categories: Category[],
-	): string => {
-		return categoryIds
-			.map((categoryId) => {
-				const category = categories.find((cat) => cat.id === categoryId);
-				return category?.name;
-			})
-			.filter(Boolean)
-			.join(", ");
-	};
 	return (
 		<>
-			<Table
-				striped
-				bordered
-				hover
-				style={{ height: "300px", overflow: "auto" }}
-			>
+			<Table striped bordered hover>
 				<thead>
 					<tr>
 						<th>#</th>
 						<th>Title</th>
 						<th>Category</th>
 						<th>Status</th>
-						<th>Updated At</th>
 						<th>Created At</th>
+						<th>Updated At</th>
 						<th>Actions</th>
 					</tr>
 				</thead>
 				<tbody>
-					{tasks.length > 0 ? (
-						tasks.map((task, index) => (
-							<tr key={task.id}>
-								<td>{(page - 1) * limit + index + 1}</td>
-								<td>{task.title}</td>
-								<td>
-									{getCategoryNames(
-										task.category.map((cat) => cat.id),
-										categories,
-									)}
-								</td>
-								<td>{task.status}</td>
-								<td>
-									{format(new Date(task.updatedAt), "HH:mm:ss dd/MM/yyyy")}
-								</td>
-								<td>
-									{format(new Date(task.createdAt), "HH:mm:ss dd/MM/yyyy")}
-								</td>
-								<td>
-									<div className="d-flex gap-2">
-										<Button
-											variant="primary"
-											size="sm"
-											onClick={() => handleEdit(task)}
-										>
-											Edit
-										</Button>
-										<Button
-											variant="danger"
-											size="sm"
-											onClick={() => handleDelete(task)}
-										>
-											Delete
-										</Button>
-									</div>
-								</td>
-							</tr>
-						))
-					) : (
-						<tr>
-							<td colSpan={7} className="text-center">
-								No tasks found.
-							</td>
-						</tr>
+					{isAddingNewTask && (
+						<TaskForm
+							form={form}
+							categories={categories}
+							onSave={handleSave}
+							onCancel={handleCancel}
+							index={1}
+						/>
+					)}
+					{tasks.map((task, index) =>
+						taskToEdit?.id === task.id ? (
+							<TaskForm
+								key={task.id}
+								form={form}
+								categories={categories}
+								onSave={handleSave}
+								onCancel={handleCancel}
+								index={isAddingNewTask ? index + 2 : index + 1}
+								task={task}
+							/>
+						) : (
+							<TaskItem
+								key={task.id}
+								task={task}
+								index={isAddingNewTask ? index + 2 : index + 1}
+								onUpdate={() => handleUpdate(task)}
+								onDelete={() => handleDelete(task)}
+							/>
+						),
 					)}
 				</tbody>
 			</Table>
 			<div className="d-flex justify-content-between mt-3">
-				<Button variant="success" onClick={handleAddTask}>
+				<Button
+					variant="success"
+					onClick={handleAddNew}
+					disabled={!!isAddingNewTask || !!taskToEdit}
+				>
 					+ Thêm Task Mới
 				</Button>
 			</div>
 
-			<TaskForm
-				show={showAddModal}
-				categories={categories}
-				onSuccess={handleFormSuccess}
-				onHide={() => setShowAddModal(false)}
-			/>
-			<TaskForm
-				show={showEditModal}
-				task={editTask}
-				categories={categories}
-				onSuccess={handleFormSuccess}
-				onHide={() => {
-					setShowEditModal(false);
-					setEditTask(null);
-				}}
-			/>
 			<DeleteConfirmModal
-				show={showDeleteModal}
-				onHide={() => {
-					setShowDeleteModal(false);
-					setTaskToDelete(null);
+				isOpen={isOpenDeleteModal}
+				onClose={() => {
+					setIsOpenDeleteModal(false);
 				}}
 				onConfirm={handleConfirmDelete}
-				taskTitle={taskToDelete?.title || ""}
+				task={taskToDelete}
 			/>
 		</>
 	);

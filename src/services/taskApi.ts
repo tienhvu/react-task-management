@@ -3,17 +3,17 @@ import { Task } from "~/types/Task";
 import { TaskStatus } from "~/types/StatusEnum";
 import { Category } from "~/types/Category";
 import { Response } from "~/types/Response";
-import { PaginatedTasksResponse } from "~/mocks/handlers/taskHandlers";
+import { PaginatedResponse } from "~/types/PaginationResponse";
 
 export interface CreateTaskRequest {
 	title: string;
-	category: Category[];
+	categories: Category[];
 	status: TaskStatus;
 }
 
 export interface UpdateTaskRequest {
-	title?: string;
-	category?: Category[];
+	title: string;
+	categories?: Category[];
 	status?: TaskStatus;
 }
 
@@ -33,32 +33,28 @@ export const update = (
 };
 
 // Delete task
-export const deleteTaskApi = (taskId: string): Promise<void> => {
+export const remove = (taskId: string): Promise<void> => {
 	const url = `/tasks/${taskId}`;
 	return axiosInstance.delete(url);
 };
 
-// Get all tasks (with pagination)
-// export const get = (page: number): Promise<PaginatedTasksResponse> => {
-// 	const url = `/tasks?page=${page}`;
-// 	return axiosInstance.get(url);
-// };
-
+//Get
 export const get = (
 	page: number,
 	limit?: number,
-): Promise<PaginatedTasksResponse> => {
+): Promise<PaginatedResponse<Task>> => {
 	const url = limit
 		? `/tasks?page=${page}&limit=${limit}`
 		: `/tasks?page=${page}`;
 	return axiosInstance.get(url);
 };
 
+//Search
 export const search = (
 	query: string,
 	page: number,
 	limit?: number,
-): Promise<PaginatedTasksResponse> => {
+): Promise<PaginatedResponse<Task>> => {
 	const url = limit
 		? `/tasks?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
 		: `/tasks?query=${encodeURIComponent(query)}&page=${page}`;

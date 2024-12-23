@@ -11,15 +11,13 @@ import { getCategories } from "~/store/slices/categorySlice";
 
 const TaskList: React.FC = () => {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [currentPage, setCurrentPage] = useState(1);
-	const [pageSize, setPageSize] = useState(10);
-
 	const dispatch = useDispatch<AppDispatch>();
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
-	const { tasks, total } = useSelector((state: RootState) => state.task);
+
+	const { tasks, meta } = useSelector((state: RootState) => state.task);
 	const { categories } = useSelector((state: RootState) => state.category);
 
-	const totalPages = Math.ceil(total / pageSize);
+	const totalPages = Math.ceil(meta.total / meta.limit);
 
 	useEffect(() => {
 		dispatch(getCategories());
@@ -30,40 +28,40 @@ const TaskList: React.FC = () => {
 			dispatch(
 				searchTasks({
 					query: debouncedSearchTerm,
-					page: currentPage,
-					limit: pageSize,
+					page: meta.page,
+					limit: meta.limit,
 				}),
 			);
 		} else {
-			dispatch(getTasks({ page: currentPage, limit: pageSize }));
+			dispatch(getTasks({ page: meta.page, limit: meta.limit }));
 		}
-	}, [dispatch, debouncedSearchTerm, currentPage, pageSize]);
+	}, [dispatch, debouncedSearchTerm, meta.page, meta.limit]);
 
 	const handleSearch = (query: string) => {
 		setSearchTerm(query);
-		setCurrentPage(1);
+		dispatch(getTasks({ page: 1, limit: meta.limit }));
 	};
 
 	const handlePageChange = (page: number) => {
-		setCurrentPage(page);
+		dispatch(getTasks({ page, limit: meta.limit }));
 	};
 
 	const handlePageSizeChange = (newPageSize: number) => {
-		setPageSize(newPageSize);
-		setCurrentPage(1);
+		dispatch(getTasks({ page: 1, limit: newPageSize }));
 	};
+
 	return (
 		<Container>
 			<h1 className="my-4">Task List</h1>
 			<SearchBar onSearch={handleSearch} searchType="task" />
 			<>
-				<TaskTable tasks={tasks} categories={categories} />
+				<TaskTable tasks={tasks} categories={categories} currentMeta={meta} />
 				<Pagination
 					totalPages={totalPages}
-					currentPage={currentPage}
+					currentPage={meta.page}
 					onPageChange={handlePageChange}
-					totalItems={total}
-					pageSize={pageSize}
+					totalItems={meta.total}
+					pageSize={meta.limit}
 					onPageSizeChange={handlePageSizeChange}
 				/>
 			</>

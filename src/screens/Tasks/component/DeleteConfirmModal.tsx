@@ -1,31 +1,31 @@
 import { Modal, Button } from "react-bootstrap";
-
+import { Task } from "~/types/Task";
 interface DeleteConfirmModalProps {
-	show: boolean;
-	onHide: () => void;
+	isOpen: boolean;
+	onClose: () => void;
 	onConfirm: () => void;
-	taskTitle: string;
+	task: Task | null;
 }
 
 export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
-	show,
-	onHide,
+	isOpen,
+	onClose,
 	onConfirm,
-	taskTitle,
+	task,
 }) => {
 	return (
-		<Modal show={show} onHide={onHide}>
+		<Modal show={isOpen} onHide={onClose}>
 			<Modal.Header closeButton>
 				<Modal.Title>Confirm Delete</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
-				Are you sure you want to delete task "{taskTitle}"?
+				Are you sure you want to delete task "{task?.title}"?
 			</Modal.Body>
 			<Modal.Footer>
-				<Button variant="secondary" onClick={onHide}>
+				<Button variant="secondary" onClick={onClose}>
 					Cancel
 				</Button>
-				<Button variant="danger" onClick={onConfirm}>
+				<Button variant="danger" onClick={onConfirm} disabled={!task}>
 					Delete
 				</Button>
 			</Modal.Footer>

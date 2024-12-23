@@ -4,7 +4,7 @@ import { TaskStatus } from "./StatusEnum";
 export interface Task {
 	id: string;
 	title: string;
-	category: Category[];
+	categories: Category[];
 	status: TaskStatus;
 	createdAt: Date;
 	updatedAt: Date;

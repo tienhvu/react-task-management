@@ -7,24 +7,18 @@ import { Category } from "~/types/Category";
 import { TaskStatus } from "~/types/StatusEnum";
 import { Task } from "~/types/Task";
 import { Response } from "~/types/Response";
+import { PaginatedResponse } from "~/types/PaginationResponse";
 type CreateTaskRequest = {
 	title: string;
-	category: Category[];
+	categories: Category[];
 	status: TaskStatus;
 };
 
 type UpdateTaskRequest = {
 	title?: string;
-	category?: Category[];
+	categories?: Category[];
 	status?: TaskStatus;
 };
-
-export type PaginatedTasksResponse = Response<{
-	tasks: Task[];
-	total: number;
-	page: number;
-	limit: number;
-}>;
 
 const tasks: Task[] = JSON.parse(localStorage.getItem("tasks") || "[]");
 
@@ -51,7 +45,7 @@ export const taskHandlers = [
 			const task: Task = {
 				id: uuidv4(),
 				title: newTask.title,
-				category: newTask.category || [],
+				categories: newTask.categories || [],
 				status: newTask.status,
 				createdAt: new Date(),
 				updatedAt: new Date(),
@@ -87,7 +81,7 @@ export const taskHandlers = [
 		}
 
 		existingTask.title = taskUpdate.title ?? existingTask.title;
-		existingTask.category = taskUpdate.category ?? existingTask.category;
+		existingTask.categories = taskUpdate.categories ?? existingTask.categories;
 		existingTask.status = taskUpdate.status ?? existingTask.status;
 		existingTask.updatedAt = new Date();
 
@@ -120,30 +114,37 @@ export const taskHandlers = [
 	),
 
 	// Get tasks (with pagination and optional search query)
-	http.get<{}, {}, PaginatedTasksResponse>(
+	http.get<{}, {}, PaginatedResponse<Task>>(
 		`${baseURL}/tasks`,
 		async ({ request }) => {
 			const urlObj = new URL(request.url);
 			const query = urlObj.searchParams.get("query")?.toLowerCase();
 			const page = parseInt(urlObj.searchParams.get("page") || "1", 10);
 			const limit = parseInt(urlObj.searchParams.get("limit") || "10", 10);
-			// Filter tasks by query if provided
+
 			const filteredTasks = query
 				? tasks.filter((task) => task.title.toLowerCase().includes(query))
 				: tasks;
 
-			// Apply pagination
+			const sortedTasks = filteredTasks.sort((a, b) => {
+				return (
+					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				);
+			});
+
 			const startIndex = (page - 1) * limit;
 			const endIndex = startIndex + limit;
-			const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
+			const paginatedTasks = sortedTasks.slice(startIndex, endIndex);
 
 			return HttpResponse.json(
 				{
 					data: {
-						tasks: paginatedTasks,
-						total: filteredTasks.length,
-						page,
-						limit,
+						items: paginatedTasks,
+						meta: {
+							total: filteredTasks.length,
+							page,
+							limit,
+						},
 					},
 					message: "Tasks retrieved successfully",
 				},
