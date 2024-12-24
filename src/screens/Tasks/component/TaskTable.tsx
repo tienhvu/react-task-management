@@ -18,6 +18,7 @@ import { CreateTaskRequest, UpdateTaskRequest } from "~/services/taskApi";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { TaskForm, TaskFormData } from "./TaskForm";
 import { TaskItem } from "./TaskItem";
+import { TaskFormEditModal } from "./TaskFormEditModal";
 
 const taskSchema = yup.object().shape({
 	title: yup.string().required("Tiêu đề không được để trống"),
@@ -39,6 +40,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 	currentMeta,
 }) => {
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [taskSelected, setTaskSelected] = useState<Task | null>(null);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isAddingNewTask, setIsAddingNewTask] = useState(false);
@@ -73,6 +75,17 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 		setTaskSelected(task);
 		setIsEditing(true);
 		resetForm(task);
+	};
+
+	const onShowEditModal = (task: Task) => {
+		setIsOpenEditModal(true);
+		setTaskSelected(task);
+	}
+
+	const handleFormSuccess = async () => {
+		await dispatch(getTasks({ page: currentMeta.page, limit: currentMeta.limit }));
+		setIsOpenEditModal(false);
+		setTaskSelected(null);
 	};
 
 	const onDelete = (task: Task) => {
@@ -112,6 +125,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
 	const handleCancel = () => {
 		setTaskSelected(null);
+		setIsOpenEditModal(false);
 		setIsEditing(false);
 		setIsAddingNewTask(false);
 		form.reset();
@@ -181,6 +195,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 								task={task}
 								index={isAddingNewTask ? index + 2 : index + 1}
 								onUpdate={() => onEdit(task)}
+								onShowModal={() => onShowEditModal(task)}
 								onDelete={() => onDelete(task)}
 								disabled={isAddingNewTask}
 							/>
@@ -209,6 +224,17 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 					onConfirm={handleDelete}
 					task={taskSelected}
 				/>
+			)}
+
+			{isOpenEditModal && taskSelected && (
+				<TaskFormEditModal
+				onOpen={isOpenEditModal}
+				task={taskSelected}
+				categories={categories}
+				schema={taskSchema}
+				onSuccess={handleFormSuccess}
+				onClose={() => setIsOpenEditModal(false)}
+			/>
 			)}
 		</>
 	);
