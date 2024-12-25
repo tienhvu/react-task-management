@@ -16,7 +16,7 @@ const CategoryPage = () => {
 	const [categorySelected, setCategorySelected] = useState<Category>();
 	const navigate = useNavigate();
 	useEffect(() => {
-		const query = searchParams.get("query") || "";
+		const query = searchParams.get("query") ?? "";
 		fetchCategories(query);
 	}, [searchParams]);
 
