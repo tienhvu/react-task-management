@@ -7,17 +7,19 @@ import { SCREEN_PATHS } from "~/utils/constants/constants";
 import SearchBar from "../components/SearchBar";
 import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
+import { useSelector } from "react-redux";
+import { RootState } from "~/store/store";
 
 const CategoryPage = () => {
 	const [searchParams] = useSearchParams();
-	const { categories, fetchCategories } = useCategories();
+	const { categories } = useSelector((state: RootState) => state.category);
+	const { fetchCategories } = useCategories();
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
 	const navigate = useNavigate();
 	useEffect(() => {
-		const query = searchParams.get("query") ?? "";
-		fetchCategories(query);
+		fetchCategories();
 	}, [searchParams]);
 
 	const handleOpenModal = (type: "edit" | "delete", category: Category) => {

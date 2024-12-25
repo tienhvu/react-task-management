@@ -6,6 +6,7 @@ import { useToast } from "~/components/Toast";
 import { Category } from "~/types/Category";
 import { deleteCategory, getCategories } from "~/store/slices/categorySlice";
 import { AppDispatch } from "~/store/store";
+import { useCategories } from "~/hook/useCategories";
 
 interface CategoryDeleteModalProps {
 	isOpen: boolean;
@@ -20,12 +21,12 @@ const CategoryDeleteModal: React.FC<CategoryDeleteModalProps> = ({
 }) => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { showToast } = useToast();
-
+	const { fetchCategories } = useCategories();
 	const handleDeleteCategory = async () => {
 		try {
 			await dispatch(deleteCategory(category.id)).unwrap();
 			showToast("Xóa danh mục thành công");
-			dispatch(getCategories({ query: "" }));
+			fetchCategories();
 			onClose();
 		} catch (error) {
 			showToast("Xóa danh mục thất bại!", "danger");

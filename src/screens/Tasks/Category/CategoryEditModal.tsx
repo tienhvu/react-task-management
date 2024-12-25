@@ -2,10 +2,11 @@ import { Modal } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "~/store/store";
 import { useToast } from "~/components/Toast";
-import { updateCategory, getCategories } from "~/store/slices/categorySlice";
+import { updateCategory } from "~/store/slices/categorySlice";
 import CategoryForm from "./CategoryForm";
 import type { CategoryFormData } from "./CategoryForm";
 import { Category } from "~/types/Category";
+import { useCategories } from "~/hook/useCategories";
 
 interface CategoryEditModalProps {
 	isOpen: boolean;
@@ -20,7 +21,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 }) => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { showToast } = useToast();
-
+	const { fetchCategories } = useCategories();
 	const handleUpdateCategory = async (data: CategoryFormData) => {
 		try {
 			await dispatch(
@@ -30,7 +31,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 				}),
 			).unwrap();
 			showToast("Cập nhật danh mục thành công");
-			dispatch(getCategories({ query: "" }));
+			fetchCategories();
 			onClose();
 		} catch (error) {
 			showToast("Cập nhật danh mục thất bại!", "danger");

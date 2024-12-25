@@ -1,14 +1,16 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import { getCategories } from "~/store/slices/categorySlice";
-import { AppDispatch, RootState } from "~/store/store";
+import { AppDispatch } from "~/store/store";
 
 export const useCategories = () => {
 	const dispatch = useDispatch<AppDispatch>();
-	const { categories } = useSelector((state: RootState) => state.category);
+	const [searchParams] = useSearchParams();
 
-	const fetchCategories = (query: string) => {
+	const fetchCategories = () => {
+		const query = searchParams.get("query") ?? "";
 		dispatch(getCategories({ query }));
 	};
 
-	return { categories, fetchCategories };
+	return { fetchCategories };
 };
