@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import { getCategories } from "~/store/slices/categorySlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Category } from "~/types/Category";
+import DeleteModal from "../component/DeleteModal";
+import SearchBar from "../component/SearchBar";
 import AddCategory from "./AddCategory";
-import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
-import { useSearchParams } from "react-router-dom";
 
 const CategoryPage = () => {
 	const dispatch = useDispatch<AppDispatch>();
@@ -18,7 +19,7 @@ const CategoryPage = () => {
 	const [searchParams] = useSearchParams();
 
 	useEffect(() => {
-		const query = searchParams.get("query") || "";
+		const query = searchParams.get("query") ?? "";
 		dispatch(getCategories({ query }));
 	}, [searchParams, dispatch]);
 
@@ -98,9 +99,10 @@ const CategoryPage = () => {
 			)}
 
 			{isOpenDeleteModal && categorySelected && (
-				<CategoryDeleteModal
+				<DeleteModal
 					isOpen={isOpenDeleteModal}
-					category={categorySelected}
+					item={categorySelected}
+					itemType="category"
 					onClose={() => setIsOpenDeleteModal(false)}
 				/>
 			)}

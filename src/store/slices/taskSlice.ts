@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
 	add,
 	remove,
-	search,
 	update,
 	get,
 	UpdateTaskRequest,
@@ -82,11 +81,11 @@ export const deleteTask = createAsyncThunk(
 export const getTasks = createAsyncThunk(
 	"task/getTasks",
 	async (
-		{ page, limit }: { page: number; limit: number },
+		{ page, limit, query }: { page: number; limit: number; query?: string },
 		{ rejectWithValue },
 	) => {
 		try {
-			const response = await get(page, limit);
+			const response = await get(page, limit, query);
 			return {
 				items: response.data.items,
 				meta: response.data.meta,
@@ -98,26 +97,6 @@ export const getTasks = createAsyncThunk(
 	},
 );
 
-export const searchTasks = createAsyncThunk(
-	"task/search",
-	async (
-		{ query, page, limit }: { query: string; page: number; limit: number },
-		{ rejectWithValue },
-	) => {
-		try {
-			const response = await search(query, page, limit);
-			return {
-				items: response.data.items,
-				meta: response.data.meta,
-			};
-		} catch (error: unknown) {
-			const err = error as { response?: { data?: { message?: string } } };
-			return rejectWithValue(
-				err.response?.data?.message ?? "Search tasks failed",
-			);
-		}
-	},
-);
 const taskSlice = createSlice({
 	name: "task",
 	initialState,
@@ -170,15 +149,6 @@ const taskSlice = createSlice({
 				state.isLoading = false;
 				state.error = action.payload as string;
 			})
-			.addCase(searchTasks.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.tasks = action.payload.items;
-				state.meta = action.payload.meta;
-			})
-			.addCase(searchTasks.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload as string;
-			})
 			.addCase(getTasks.pending, (state) => {
 				state.isLoading = true;
 				state.error = null;
@@ -187,6 +157,7 @@ const taskSlice = createSlice({
 				state.isLoading = false;
 				state.tasks = action.payload.items;
 				state.meta = action.payload.meta;
+				state.error = null;
 			})
 			.addCase(getTasks.rejected, (state, action) => {
 				state.isLoading = false;

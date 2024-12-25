@@ -65,6 +65,14 @@ yup.addMethod<yup.StringSchema>(
 	},
 );
 
+yup.addMethod<yup.StringSchema>(
+	yup.string,
+	"taskTitle",
+	function (this: yup.StringSchema) {
+		return this.required("Tiêu đề không được để trống");
+	},
+);
+
 declare module "yup" {
 	interface StringSchema {
 		username(params?: { message?: string }): StringSchema;
@@ -73,6 +81,7 @@ declare module "yup" {
 		firstName(params?: { message?: string }): StringSchema;
 		lastName(params?: { message?: string }): StringSchema;
 		gender(params?: { message?: string }): StringSchema;
+		taskTitle(params?: { message?: string }): StringSchema;
 	}
 }
 

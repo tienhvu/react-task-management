@@ -30,7 +30,7 @@ export const update = (
 };
 
 // Delete category
-export const deleteCategoryApi = (categoryId: string): Promise<void> => {
+export const remove = (categoryId: string): Promise<void> => {
 	const url = `/categories/${categoryId}`;
 	return axiosInstance.delete(url);
 };

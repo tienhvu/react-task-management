@@ -7,12 +7,12 @@ import { PaginatedResponse } from "~/types/PaginationResponse";
 
 export interface CreateTaskRequest {
 	title: string;
-	categories: Category[];
-	status: TaskStatus;
+	categories?: Category[];
+	status?: TaskStatus;
 }
 
 export interface UpdateTaskRequest {
-	title: string;
+	title?: string;
 	categories?: Category[];
 	status?: TaskStatus;
 }
@@ -42,27 +42,10 @@ export const remove = (taskId: string): Promise<void> => {
 export const get = (
 	page: number,
 	limit?: number,
+	query?: string,
 ): Promise<PaginatedResponse<Task>> => {
-	const url = limit
-		? `/tasks?page=${page}&limit=${limit}`
-		: `/tasks?page=${page}`;
-	return axiosInstance.get(url);
-};
-
-//Search
-export const search = (
-	query: string,
-	page: number,
-	limit?: number,
-): Promise<PaginatedResponse<Task>> => {
-	const url = limit
-		? `/tasks?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
-		: `/tasks?query=${encodeURIComponent(query)}&page=${page}`;
-	return axiosInstance.get(url);
-};
-
-// Get task by ID
-export const getTaskById = (taskId: string): Promise<Response<Task>> => {
-	const url = `/tasks/${taskId}`;
+	const url = query
+		? `/tasks?query=${encodeURIComponent(query)}&page=${page}&limit=${limit || ""}`
+		: `/tasks?page=${page}&limit=${limit || ""}`;
 	return axiosInstance.get(url);
 };
