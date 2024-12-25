@@ -1,15 +1,14 @@
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategories } from "~/store/slices/categorySlice";
 import { AppDispatch, RootState } from "~/store/store";
 
-export const useCategories = (query: string) => {
+export const useCategories = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { categories } = useSelector((state: RootState) => state.category);
 
-	useEffect(() => {
+	const fetchCategories = (query: string) => {
 		dispatch(getCategories({ query }));
-	}, [query, dispatch]);
+	};
 
-	return { categories };
+	return { categories, fetchCategories };
 };

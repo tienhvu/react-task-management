@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCategories } from "~/hook/useCategories";
@@ -9,13 +9,16 @@ import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
 
 const CategoryPage = () => {
-	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
-	const query = searchParams.get("query") ?? "";
-	const { categories } = useCategories(query);
+	const { categories, fetchCategories } = useCategories();
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
+	const navigate = useNavigate();
+	useEffect(() => {
+		const query = searchParams.get("query") || "";
+		fetchCategories(query);
+	}, [searchParams]);
 
 	const handleOpenModal = (type: "edit" | "delete", category: Category) => {
 		setCategorySelected(category);
