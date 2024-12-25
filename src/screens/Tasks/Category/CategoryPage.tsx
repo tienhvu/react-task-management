@@ -1,25 +1,28 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCategories } from "~/hook/useCategories";
 import { getCategories } from "~/store/slices/categorySlice";
-import { AppDispatch, RootState } from "~/store/store";
+import { AppDispatch } from "~/store/store";
 import { Category } from "~/types/Category";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 import SearchBar from "../components/SearchBar";
-import AddCategory from "./AddCategory";
 import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
-import { useSearchParams } from "react-router-dom";
 
 const CategoryPage = () => {
 	const dispatch = useDispatch<AppDispatch>();
-	const { categories } = useSelector((state: RootState) => state.category);
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const query = searchParams.get("query") ?? "";
+	const { categories } = useCategories(query);
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
-	const [searchParams] = useSearchParams();
 
 	useEffect(() => {
-		const query = searchParams.get("query") || "";
 		dispatch(getCategories({ query }));
 	}, [searchParams, dispatch]);
 
@@ -34,10 +37,14 @@ const CategoryPage = () => {
 
 	return (
 		<Container className="mt-5">
-			{/* Phần form thêm mới */}
 			<Row>
-				<Col md={12}>
-					<AddCategory />
+				<Col md={6}>
+					<Button
+						variant="primary"
+						onClick={() => navigate(SCREEN_PATHS.ADD_CATEGORY)}
+					>
+						Thêm mới danh mục
+					</Button>
 				</Col>
 			</Row>
 

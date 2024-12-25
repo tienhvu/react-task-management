@@ -66,11 +66,7 @@ const ResetPassword = () => {
 	const currentPasswordValue = watch("currentPassword");
 	const newPasswordValue = watch("newPassword");
 
-	const {
-		user,
-		refreshToken: currentRefreshToken,
-		error,
-	} = useSelector((state: RootState) => state.auth);
+	const { user, error } = useSelector((state: RootState) => state.auth);
 
 	useEffect(() => {
 		if (currentPasswordValue && newPasswordValue) {
@@ -102,10 +98,11 @@ const ResetPassword = () => {
 			);
 
 			if (resetPassword.fulfilled.match(resetResult)) {
-				if (currentRefreshToken) {
+				const newRefreshToken = resetResult.payload?.refreshToken;
+				if (newRefreshToken) {
 					await dispatch(
 						refreshToken({
-							refreshToken: currentRefreshToken,
+							refreshToken: newRefreshToken,
 							userId: user.id,
 						}),
 					).unwrap();

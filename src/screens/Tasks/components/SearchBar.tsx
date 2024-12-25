@@ -13,13 +13,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 	const debouncedValue = useDebounce(searchValue, 500);
 
 	useEffect(() => {
-		if (debouncedValue?.trim() !== undefined) {
-			if (debouncedValue.trim()) {
-				setSearchParams({ query: debouncedValue.trim() });
-			} else {
-				setSearchParams({});
-			}
-		}
+		const query = debouncedValue.trim()
+			? { query: debouncedValue.trim() }
+			: ({} as URLSearchParams);
+		setSearchParams(query);
 	}, [debouncedValue, setSearchParams]);
 
 	return (
