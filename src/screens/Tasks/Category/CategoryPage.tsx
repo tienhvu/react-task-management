@@ -1,11 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
-import { useDispatch } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCategories } from "~/hook/useCategories";
-import { getCategories } from "~/store/slices/categorySlice";
-import { AppDispatch } from "~/store/store";
 import { Category } from "~/types/Category";
 import { SCREEN_PATHS } from "~/utils/constants/constants";
 import SearchBar from "../components/SearchBar";
@@ -13,7 +9,6 @@ import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
 
 const CategoryPage = () => {
-	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 	const query = searchParams.get("query") ?? "";
@@ -21,10 +16,6 @@ const CategoryPage = () => {
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
-
-	useEffect(() => {
-		dispatch(getCategories({ query }));
-	}, [searchParams, dispatch]);
 
 	const handleOpenModal = (type: "edit" | "delete", category: Category) => {
 		setCategorySelected(category);
