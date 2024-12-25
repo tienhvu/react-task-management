@@ -25,7 +25,7 @@ const CategoryDeleteModal: React.FC<CategoryDeleteModalProps> = ({
 		try {
 			await dispatch(deleteCategory(category.id)).unwrap();
 			showToast("Xóa danh mục thành công");
-			dispatch(getCategories());
+			dispatch(getCategories({ query: "" }));
 			onClose();
 		} catch (error) {
 			showToast("Xóa danh mục thất bại!", "danger");
