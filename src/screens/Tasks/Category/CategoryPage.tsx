@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { getCategories, searchCategories } from "~/store/slices/categorySlice";
+import { getCategories } from "~/store/slices/categorySlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Category } from "~/types/Category";
 import AddCategory from "./AddCategory";
 import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
-import SearchBar from "../component/SearchBar";
+import { useSearchParams } from "react-router-dom";
 
 const CategoryPage = () => {
 	const dispatch = useDispatch<AppDispatch>();
@@ -15,14 +15,12 @@ const CategoryPage = () => {
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
+	const [searchParams] = useSearchParams();
 
-	const handleSearch = (query: string) => {
-		dispatch(searchCategories(query));
-	};
-
-	const handleReset = () => {
-		dispatch(getCategories());
-	};
+	useEffect(() => {
+		const query = searchParams.get("query") || "";
+		dispatch(getCategories({ query }));
+	}, [searchParams, dispatch]);
 
 	const handleOpenModal = (type: "edit" | "delete", category: Category) => {
 		setCategorySelected(category);
@@ -48,11 +46,7 @@ const CategoryPage = () => {
 					<Card>
 						<Card.Body>
 							{/* Thanh tìm kiếm */}
-							<SearchBar
-								onSearch={handleSearch}
-								onReset={handleReset}
-								placeholder="Tìm kiếm danh mục"
-							/>
+							<SearchBar placeholder="Tìm kiếm danh mục ..." />
 
 							{/* Bảng danh mục */}
 							<Table striped bordered hover className="mt-3">

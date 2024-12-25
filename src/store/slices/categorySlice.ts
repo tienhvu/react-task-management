@@ -2,8 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
 	add,
 	update,
-	deleteCategoryApi,
-	search,
+	remove,
 	CreateCategoryRequest,
 	UpdateCategoryRequest,
 	get,
@@ -75,31 +74,16 @@ export const deleteCategory = createAsyncThunk(
 	},
 );
 
-export const searchCategories = createAsyncThunk(
-	"category/search",
-	async (query: string, { rejectWithValue }) => {
-		try {
-			const response = await search(query);
-			return response.data;
-		} catch (error: unknown) {
-			const err = error as { response?: { data?: { message?: string } } };
-			return rejectWithValue(
-				err.response?.data?.message ?? "Search categories failed",
-			);
-		}
-	},
-);
-
 export const getCategories = createAsyncThunk(
 	"category/getAll",
-	async (_, { rejectWithValue }) => {
+	async ({ query }: { query?: string }, { rejectWithValue }) => {
 		try {
-			const response = await get();
+			const response = await get(query);
 			return response.data;
 		} catch (error: unknown) {
 			const err = error as { response?: { data?: { message?: string } } };
 			return rejectWithValue(
-				err.response?.data?.message ?? "Get categories failed",
+				err.response?.data?.message ?? "Không thể lấy danh sách danh mục",
 			);
 		}
 	},
@@ -152,19 +136,6 @@ const categorySlice = createSlice({
 				state.error = action.payload as string;
 			})
 
-			.addCase(searchCategories.pending, (state) => {
-				state.isLoading = true;
-				state.error = null;
-			})
-			.addCase(searchCategories.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.categories = action.payload;
-			})
-			.addCase(searchCategories.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload as string;
-			})
-
 			.addCase(getCategories.pending, (state) => {
 				state.isLoading = true;
 				state.error = null;
@@ -172,6 +143,7 @@ const categorySlice = createSlice({
 			.addCase(getCategories.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.categories = action.payload;
+				state.error = null;
 			})
 			.addCase(getCategories.rejected, (state, action) => {
 				state.isLoading = false;

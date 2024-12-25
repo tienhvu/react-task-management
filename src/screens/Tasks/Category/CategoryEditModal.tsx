@@ -30,7 +30,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 				}),
 			).unwrap();
 			showToast("Cập nhật danh mục thành công");
-			dispatch(getCategories());
+			dispatch(getCategories({ query: "" }));
 			onClose();
 		} catch (error) {
 			showToast("Cập nhật danh mục thất bại!", "danger");
@@ -47,7 +47,7 @@ const CategoryEditModal: React.FC<CategoryEditModalProps> = ({
 				<CategoryForm
 					initialData={category}
 					onSubmit={handleUpdateCategory}
-					submitButtonText="Cập nhật"
+					buttonLabel="Cập nhật"
 				/>
 			</Modal.Body>
 		</Modal>

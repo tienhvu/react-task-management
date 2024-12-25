@@ -14,10 +14,9 @@ const AddCategory = () => {
 		try {
 			await dispatch(addCategory(data)).unwrap();
 			showToast("Thêm danh mục thành công");
-			dispatch(getCategories());
-		} catch (error) {
+			dispatch(getCategories({ query: "" }));
+		} catch {
 			showToast("Thêm danh mục thất bại!", "danger");
-			console.log("Error", error);
 		}
 	};
 
@@ -25,10 +24,7 @@ const AddCategory = () => {
 		<Card>
 			<Card.Header as="h3">Thêm Danh Mục Mới</Card.Header>
 			<Card.Body>
-				<CategoryForm
-					onSubmit={handleAddCategory}
-					submitButtonText="Thêm Mới"
-				/>
+				<CategoryForm onSubmit={handleAddCategory} buttonLabel="Thêm Mới" />
 			</Card.Body>
 		</Card>
 	);
