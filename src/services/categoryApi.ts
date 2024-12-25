@@ -35,13 +35,9 @@ export const remove = (categoryId: string): Promise<void> => {
 	return axiosInstance.delete(url);
 };
 
-// Search categories
-export const search = (query: string): Promise<Response<Category[]>> => {
-	const url = `/categories?query=${encodeURIComponent(query)}`;
-	return axiosInstance.get(url);
-};
-
-export const get = (): Promise<Response<Category[]>> => {
-	const url = "/categories";
+export const get = (query?: string): Promise<Response<Category[]>> => {
+	const url = query
+		? `/categories?query=${encodeURIComponent(query)}`
+		: "/categories";
 	return axiosInstance.get(url);
 };
