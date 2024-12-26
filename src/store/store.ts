@@ -10,8 +10,8 @@ import {
 	REHYDRATE,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-
 import authReducer from "./slices/authSlice";
+import categoryReducer from "./slices/categorySlice";
 const authPersistConfig = {
 	key: "auth",
 	storage,
@@ -23,6 +23,7 @@ const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 export const store = configureStore({
 	reducer: {
 		auth: persistedAuthReducer,
+		category: categoryReducer,
 	},
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
@@ -32,6 +33,5 @@ export const store = configureStore({
 		}),
 });
 export const persistor = persistStore(store);
-
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

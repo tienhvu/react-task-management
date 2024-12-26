@@ -18,6 +18,7 @@ export interface LoginResponse {
 }
 
 export interface ResetPasswordResponse {
+	refreshToken: string;
 	message: string;
 	statusCode: number;
 }

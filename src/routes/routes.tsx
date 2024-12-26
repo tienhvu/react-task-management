@@ -6,47 +6,68 @@ import ProtectedRoute, { RouteConfig } from "~/guards/RouteConfig";
 import PrivateLayout from "~/layouts/PrivateLayout";
 import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
+import AddCategory from "~/screens/Tasks/Category/AddCategory";
+import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
 import Task from "~/screens/Tasks/Task";
 import Profile from "~/screens/User/Profile";
 import ProfileEdit from "~/screens/User/ProfileEdit";
 import ResetPassword from "~/screens/User/ResetPassword";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 const AppRoutes: React.FC = () => {
 	const routeConfigs: RouteConfig[] = [
 		{
-			path: "/tasks",
+			path: SCREEN_PATHS.TASK,
 			component: Task,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
 		{
-			path: "/profile",
+			path: SCREEN_PATHS.PROFILE,
 			component: Profile,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
 		{
-			path: "/profile/edit",
+			path: SCREEN_PATHS.EDIT_USER,
 			component: ProfileEdit,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
 		{
-			path: "/profile/reset-password",
+			path: SCREEN_PATHS.RESET_PASSWORD,
 			component: ResetPassword,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
 		{
-			path: "/login",
+			path: SCREEN_PATHS.PROFILE,
+			component: Profile,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: SCREEN_PATHS.CATEGORY,
+			component: CategoryPage,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: SCREEN_PATHS.ADD_CATEGORY,
+			component: AddCategory,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: SCREEN_PATHS.LOGIN,
 			component: LoginForm,
 		},
 		{
-			path: "/register",
+			path: SCREEN_PATHS.REGISTER,
 			component: RegisterForm,
 		},
 		{
-			path: "/",
+			path: SCREEN_PATHS.HOME,
 			component: HomePage,
 			layout: PrivateLayout,
 		},

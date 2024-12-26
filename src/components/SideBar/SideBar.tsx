@@ -22,13 +22,14 @@ const Sidebar: React.FC = () => {
 	const getNavLinks = () => {
 		if (isLoggedIn) {
 			return [
-				{ key: "/", label: "Trang chủ" },
-				{ key: "/tasks", label: "Task Manager" },
+				{ key: SCREEN_PATHS.HOME, label: "Trang chủ" },
+				{ key: SCREEN_PATHS.TASK, label: "Task Manager" },
+				{ key: SCREEN_PATHS.CATEGORY, label: "Category" },
 			];
 		} else {
 			return [
-				{ key: "/", label: "Trang chủ" },
-				{ key: "/login", label: "Đăng nhập" },
+				{ key: SCREEN_PATHS.HOME, label: "Trang chủ" },
+				{ key: SCREEN_PATHS.LOGIN, label: "Đăng nhập" },
 			];
 		}
 	};
@@ -45,7 +46,7 @@ const Sidebar: React.FC = () => {
 		try {
 			const actionResult = await dispatch(logout());
 			if (logout.fulfilled.match(actionResult)) {
-				navigate("/");
+				navigate(SCREEN_PATHS.HOME);
 			}
 		} catch (error) {
 			console.error("Logout error:", error);

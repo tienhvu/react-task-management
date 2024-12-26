@@ -9,6 +9,7 @@ import { User } from "~/types/User";
 type LoginResponse = {
 	user: Omit<User, "password">;
 };
+
 export type AuthResponse = {
 	accessToken: string;
 	refreshToken: string;
@@ -152,7 +153,7 @@ export const authHandlers = [
 	http.patch<
 		{},
 		ResetPasswordRequestBody,
-		SuccessResponse<{ message: string }> | ErrorResponse
+		SuccessResponse<{ message: string; refreshToken: string }> | ErrorResponse
 	>(`${baseURL}/auth/reset-password`, async ({ request }) => {
 		const { userId, oldPassword, newPassword } = await request.json();
 
@@ -186,7 +187,10 @@ export const authHandlers = [
 
 		if (user.password !== oldPassword) {
 			return HttpResponse.json(
-				{ message: "Incorrect old password", statusCode: 400 },
+				{
+					message: "Incorrect old password",
+					statusCode: 400,
+				},
 				{ status: 400 },
 			);
 		}
@@ -197,7 +201,11 @@ export const authHandlers = [
 		updateLocalStorage();
 
 		return HttpResponse.json(
-			{ message: "Password updated successfully", statusCode: 200 },
+			{
+				message: "Password updated successfully",
+				statusCode: 200,
+				refreshToken: generateRandomToken(),
+			},
 			{ status: 200 },
 		);
 	}),

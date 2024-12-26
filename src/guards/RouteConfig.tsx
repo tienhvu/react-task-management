@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import useLoggedIn from "~/hook/useLoggedIn";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
 
 export type RouteConfig = {
 	path: string;
@@ -23,7 +24,7 @@ const ProtectedRoute: React.FC<Props> = ({
 	const isLoggedIn = useLoggedIn();
 
 	if (isPrivate && !isLoggedIn) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to={SCREEN_PATHS.LOGIN} replace />;
 	}
 
 	if (Layout) {

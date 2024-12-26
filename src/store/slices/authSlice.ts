@@ -192,8 +192,10 @@ const authSlice = createSlice({
 				state.isLoading = true;
 				state.error = null;
 			})
-			.addCase(resetPassword.fulfilled, (state) => {
+			.addCase(resetPassword.fulfilled, (state, action) => {
+				const { refreshToken } = action.payload;
 				state.isLoading = false;
+				state.refreshToken = refreshToken;
 			})
 			.addCase(resetPassword.rejected, (state, action) => {
 				state.isLoading = false;
