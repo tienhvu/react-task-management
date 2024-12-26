@@ -1,18 +1,19 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { format } from "date-fns";
+import React, { useEffect } from "react";
+import { Button } from "react-bootstrap";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { useToast } from "~/components/Toast";
+import { useTasks } from "~/hook/useTasks";
+import { addTask, updateTask } from "~/store/slices/taskSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Category } from "~/types/Category";
 import { TaskStatus } from "~/types/StatusEnum";
 import { Task } from "~/types/Task";
+import yup from "~/validations/schema/yup";
 import { CategorySelect } from "./CategorySelect";
 import { StatusDropdown } from "./StatusDropdown";
-import { useToast } from "~/components/Toast";
-import { getTasks, updateTask, addTask } from "~/store/slices/taskSlice";
-import { Button } from "react-bootstrap";
-import { yupResolver } from "@hookform/resolvers/yup";
-import yup from "~/validations/schema/yup";
 
 const taskSchema = yup.object().shape({
 	title: yup.string().taskTitle().default(""),
@@ -38,8 +39,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 }) => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { showToast } = useToast();
-	const { isLoading, meta } = useSelector((state: RootState) => state.task);
-
+	const { isLoading } = useSelector((state: RootState) => state.task);
+	const { fetchTasks } = useTasks();
 	const form = useForm<TaskFormData>({
 		defaultValues: {
 			title: initialData?.title,
@@ -86,13 +87,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 				showToast("Task created successfully!");
 			}
 
-			dispatch(
-				getTasks({
-					page: meta.page,
-					limit: meta.limit,
-					query: "",
-				}),
-			);
+			fetchTasks();
 
 			onCancel();
 		} catch (error) {

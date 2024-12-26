@@ -1,9 +1,10 @@
-import { Modal, Button } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
+import { Button, Modal } from "react-bootstrap";
+import { useDispatch } from "react-redux";
 import { useToast } from "~/components/Toast";
+import { useTasks } from "~/hook/useTasks";
 import { deleteCategory, getCategories } from "~/store/slices/categorySlice";
-import { deleteTask, getTasks } from "~/store/slices/taskSlice";
-import { AppDispatch, RootState } from "~/store/store";
+import { deleteTask } from "~/store/slices/taskSlice";
+import { AppDispatch } from "~/store/store";
 
 interface DeletableItem {
 	id: string;
@@ -26,7 +27,7 @@ const DeleteModal = <T extends DeletableItem>({
 }: DeleteModalProps<T>) => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { showToast } = useToast();
-	const { meta } = useSelector((state: RootState) => state.task);
+	const { fetchTasks } = useTasks();
 	const handleDelete = async () => {
 		try {
 			if (itemType === "category") {
@@ -36,7 +37,7 @@ const DeleteModal = <T extends DeletableItem>({
 			} else if (itemType === "task") {
 				await dispatch(deleteTask(item.id)).unwrap();
 				showToast("Xóa công việc thành công");
-				dispatch(getTasks({ page: meta.page, limit: meta.limit, query: "" }));
+				fetchTasks();
 			}
 			onClose();
 		} catch {

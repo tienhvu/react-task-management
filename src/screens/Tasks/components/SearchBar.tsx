@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useDebounce from "~/hook/useDebounce";
@@ -8,7 +7,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [, setSearchParams] = useSearchParams();
 	const [searchValue, setSearchValue] = useState("");
 	const debouncedValue = useDebounce(searchValue, 500);
 

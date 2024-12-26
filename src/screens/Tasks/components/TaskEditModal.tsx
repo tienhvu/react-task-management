@@ -1,17 +1,18 @@
+import { yupResolver } from "@hookform/resolvers/yup";
 import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "~/components/Toast";
+import { useTasks } from "~/hook/useTasks";
 import { UpdateTaskRequest } from "~/services/taskApi";
-import { getTasks, updateTask } from "~/store/slices/taskSlice";
+import { updateTask } from "~/store/slices/taskSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Category } from "~/types/Category";
 import { Task } from "~/types/Task";
+import yup from "~/validations/schema/yup";
 import { CategoryTable } from "./CategoryTable";
 import { StatusDropdown } from "./StatusDropdown";
-import { yupResolver } from "@hookform/resolvers/yup";
-import yup from "~/validations/schema/yup";
 
 const taskSchema = yup.object().shape({
 	title: yup.string().taskTitle(),
@@ -31,7 +32,8 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 }) => {
 	const { showToast } = useToast();
 	const dispatch = useDispatch<AppDispatch>();
-	const { meta, isLoading } = useSelector((state: RootState) => state.task);
+	const { isLoading } = useSelector((state: RootState) => state.task);
+	const { fetchTasks } = useTasks();
 	const {
 		control,
 		handleSubmit,
@@ -66,7 +68,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 		try {
 			await dispatch(updateTask({ taskId: task.id, taskData: data })).unwrap();
 			showToast("Task updated successfully!");
-			dispatch(getTasks({ page: meta.page, limit: meta.limit, query: "" }));
+			fetchTasks();
 			onClose();
 		} catch {
 			showToast("Error occurred while updating task!", "danger");

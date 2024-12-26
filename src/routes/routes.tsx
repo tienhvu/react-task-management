@@ -8,7 +8,6 @@ import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
 import AddCategory from "~/screens/Tasks/Category/AddCategory";
 import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
-import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
 import TaskList from "~/screens/Tasks/TaskListPage";
 import Profile from "~/screens/User/Profile";
 import ProfileEdit from "~/screens/User/ProfileEdit";
@@ -25,13 +24,11 @@ const AppRoutes: React.FC = () => {
 		},
 		{
 			path: SCREEN_PATHS.PROFILE,
-			path: SCREEN_PATHS.PROFILE,
 			component: Profile,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
 		{
-			path: SCREEN_PATHS.EDIT_USER,
 			path: SCREEN_PATHS.EDIT_USER,
 			component: ProfileEdit,
 			isPrivate: true,
@@ -52,6 +49,12 @@ const AppRoutes: React.FC = () => {
 		{
 			path: SCREEN_PATHS.CATEGORY,
 			component: CategoryPage,
+			isPrivate: true,
+			layout: PrivateLayout,
+		},
+		{
+			path: SCREEN_PATHS.ADD_CATEGORY,
+			component: AddCategory,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
