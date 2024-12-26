@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Row, Table } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "react-router-dom";
-import { getCategories } from "~/store/slices/categorySlice";
-import { AppDispatch, RootState } from "~/store/store";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCategories } from "~/hook/useCategories";
 import { Category } from "~/types/Category";
-import DeleteModal from "../component/DeleteModal";
-import SearchBar from "../component/SearchBar";
-import AddCategory from "./AddCategory";
+import { SCREEN_PATHS } from "~/utils/constants/constants";
+import SearchBar from "../components/SearchBar";
+import CategoryDeleteModal from "./CategoryDeleteModal";
 import CategoryEditModal from "./CategoryEditModal";
+import { useSelector } from "react-redux";
+import { RootState } from "~/store/store";
 
 const CategoryPage = () => {
-	const dispatch = useDispatch<AppDispatch>();
+	const [searchParams] = useSearchParams();
 	const { categories } = useSelector((state: RootState) => state.category);
+	const { fetchCategories } = useCategories();
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
-	const [searchParams] = useSearchParams();
+	const navigate = useNavigate();
 
 	useEffect(() => {
-		const query = searchParams.get("query") ?? "";
-		dispatch(getCategories({ query }));
-	}, [searchParams, dispatch]);
+		fetchCategories();
+	}, [fetchCategories, searchParams]);
 
 	const handleOpenModal = (type: "edit" | "delete", category: Category) => {
 		setCategorySelected(category);
@@ -34,10 +34,14 @@ const CategoryPage = () => {
 
 	return (
 		<Container className="mt-5">
-			{/* Phần form thêm mới */}
 			<Row>
-				<Col md={12}>
-					<AddCategory />
+				<Col md={6}>
+					<Button
+						variant="primary"
+						onClick={() => navigate(SCREEN_PATHS.ADD_CATEGORY)}
+					>
+						Thêm mới danh mục
+					</Button>
 				</Col>
 			</Row>
 
@@ -99,10 +103,9 @@ const CategoryPage = () => {
 			)}
 
 			{isOpenDeleteModal && categorySelected && (
-				<DeleteModal
+				<CategoryDeleteModal
 					isOpen={isOpenDeleteModal}
-					item={categorySelected}
-					itemType="category"
+					category={categorySelected}
 					onClose={() => setIsOpenDeleteModal(false)}
 				/>
 			)}

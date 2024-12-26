@@ -7,4 +7,5 @@ export const SCREEN_PATHS = {
 	EDIT_USER: "/profile/edit",
 	CATEGORY: "/categories",
 	TASK: "/tasks",
+	ADD_CATEGORY: "/category/add",
 } as const;
