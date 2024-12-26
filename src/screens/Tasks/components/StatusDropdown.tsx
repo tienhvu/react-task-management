@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dropdown } from "react-bootstrap";
 import { TaskStatus } from "~/types/StatusEnum";
 
@@ -12,10 +12,12 @@ export const StatusDropdown = ({
 	changeStatus,
 }: StatusDropdownProps) => {
 	const [isOpen, setIsOpen] = useState(false);
+	const dropdownRef = useRef(null);
 	const statuses = Object.values(TaskStatus);
 
 	return (
 		<Dropdown
+			ref={dropdownRef}
 			show={isOpen}
 			onToggle={(isOpen) => setIsOpen(isOpen)}
 			className="w-100"
@@ -40,3 +42,5 @@ export const StatusDropdown = ({
 		</Dropdown>
 	);
 };
+
+export default StatusDropdown;

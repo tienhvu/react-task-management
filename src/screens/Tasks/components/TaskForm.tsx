@@ -1,7 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { yupResolver } from "@hookform/resolvers/yup";
 import { format } from "date-fns";
-import React from "react";
-import { Button } from "react-bootstrap";
+import React, { useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "~/components/Toast";
@@ -14,10 +14,13 @@ import { Task } from "~/types/Task";
 import yup from "~/validations/schema/yup";
 import { CategorySelect } from "./CategorySelect";
 import { StatusDropdown } from "./StatusDropdown";
+import { useOnClickOutside } from "~/hook/useOnclickOutside";
+import { Button } from "react-bootstrap";
 
 const taskSchema = yup.object().shape({
 	title: yup.string().taskTitle().default(""),
 });
+
 interface TaskFormProps {
 	onCancel: () => void;
 	index?: number;
@@ -41,6 +44,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 	const { showToast } = useToast();
 	const { isLoading } = useSelector((state: RootState) => state.task);
 	const { fetchTasks } = useTasks();
+	const formRef = useRef<HTMLFormElement>(null);
+
 	const form = useForm<TaskFormData>({
 		defaultValues: {
 			title: initialData?.title,
@@ -59,9 +64,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 		formState: { errors, isDirty, isValid },
 	} = form;
 
-	const watchCategories = watch("categories") || [];
-
 	const handleSave = async (data: TaskFormData) => {
+		if (!isDirty || !isValid) return;
+
 		try {
 			if (initialData) {
 				await dispatch(
@@ -83,7 +88,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 			}
 
 			fetchTasks();
-
 			onCancel();
 		} catch (error) {
 			showToast(
@@ -94,34 +98,70 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 		}
 	};
 
+	useOnClickOutside(formRef, () => {
+		if (isDirty && isValid) {
+			handleSubmit(handleSave)();
+		}
+	});
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			if (isDirty && isValid) {
+				handleSubmit(handleSave)();
+			}
+		}
+	};
+
+	const watchedFields = watch();
+	useEffect(() => {
+		if (isDirty && isValid && initialData) {
+			handleSubmit(handleSave)();
+		}
+	}, [watchedFields.status, watchedFields.categories]);
+
 	return (
 		<tr className="bg-gray-50">
 			<td className="p-2">{index || "-"}</td>
 			<td className="p-2">
-				<input
-					{...register("title")}
-					className="w-full p-1 border rounded"
-					placeholder="Task title"
-				/>
-				{errors.title && (
-					<div className="mt-1 text-sm text-danger">{errors.title.message}</div>
-				)}
+				<form
+					ref={formRef}
+					onSubmit={(e) => {
+						e.preventDefault();
+						if (isDirty && isValid) {
+							handleSubmit(handleSave)();
+						}
+					}}
+				>
+					<input
+						{...register("title")}
+						className="w-full p-1 border rounded"
+						placeholder="Task title"
+						onKeyDown={handleKeyDown}
+					/>
+					{errors.title && (
+						<div className="mt-1 text-sm text-danger">
+							{errors.title.message}
+						</div>
+					)}
+				</form>
 			</td>
 			<td className="p-2">
 				<CategorySelect
 					categories={categories}
-					value={watchCategories}
-					onChange={(newCategories) => {
+					value={watch("categories")}
+					onSave={async (newCategories) => {
 						setValue("categories", newCategories, {
 							shouldDirty: true,
 							shouldValidate: true,
 						});
 					}}
+					isLoading={isLoading}
 				/>
 			</td>
 			<td className="p-2">
 				<StatusDropdown
-					selectedStatus={form.watch("status")}
+					selectedStatus={watch("status")}
 					changeStatus={(status) => {
 						setValue("status", status, {
 							shouldDirty: true,
@@ -141,14 +181,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 					: "-"}
 			</td>
 			<td className="p-2 space-x-2">
-				<Button
-					onClick={handleSubmit(handleSave)}
-					size="sm"
-					disabled={!isDirty || !isValid || isLoading}
-					className="mr-2"
-				>
-					{isLoading ? "Saving..." : "Save"}
-				</Button>
 				<Button onClick={onCancel} size="sm" variant="secondary">
 					Cancel
 				</Button>

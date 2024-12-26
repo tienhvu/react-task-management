@@ -20,8 +20,16 @@ export const CategoryTable = ({
 		cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
+	const isCategorySelected = (id: string) =>
+		selectedCategories.some((category) => category.id === id);
+
+	const handleCheckboxChange = (category: Category) => {
+		onCategorySelect(category);
+	};
+
 	return (
 		<div>
+			{/* Search Bar */}
 			<InputGroup className="mb-3">
 				<Form.Control
 					placeholder="Search category..."
@@ -30,62 +38,59 @@ export const CategoryTable = ({
 				/>
 			</InputGroup>
 
-			<div style={{ position: "relative" }}>
-				<Table striped bordered hover>
-					<thead>
+			<div
+				style={{ position: "relative", maxHeight: "400px", overflowY: "auto" }}
+			>
+				<Table striped bordered hover responsive>
+					<thead
+						style={{
+							position: "sticky",
+							top: 0,
+							backgroundColor: "#f8f9fa",
+							zIndex: 1,
+						}}
+					>
 						<tr>
-							<th>Select</th>
-							<th>Title</th>
-							<th>Description</th>
-							<th>Created At</th>
-							<th>Updated At</th>
+							<th style={{ width: "5%" }}>Select</th>
+							<th style={{ width: "25%" }}>Title</th>
+							<th style={{ width: "40%" }}>Description</th>
+							<th style={{ width: "15%" }}>Created At</th>
+							<th style={{ width: "15%" }}>Updated At</th>
 						</tr>
 					</thead>
+					<tbody>
+						{filteredCategories.map((category) => (
+							<tr key={category.id}>
+								<td>
+									<Form.Check
+										type="checkbox"
+										id={`category-${category.id}`}
+										checked={isCategorySelected(category.id)}
+										onChange={() => handleCheckboxChange(category)}
+									/>
+								</td>
+								<td>{category.name}</td>
+								<td>{category.description || "No description available"}</td>
+								<td>
+									{format(new Date(category.createdAt), "HH:mm:ss dd/MM/yyyy")}
+								</td>
+								<td>
+									{format(new Date(category.updatedAt), "HH:mm:ss dd/MM/yyyy")}
+								</td>
+							</tr>
+						))}
+						{filteredCategories.length === 0 && (
+							<tr>
+								<td colSpan={5} className="text-center text-muted">
+									No categories found
+								</td>
+							</tr>
+						)}
+					</tbody>
 				</Table>
-
-				<div style={{ maxHeight: "400px", overflowY: "auto" }}>
-					<Table striped bordered hover>
-						<tbody>
-							{filteredCategories.map((category) => (
-								<tr
-									key={category.id}
-									className={
-										selectedCategories.some((c) => c.id === category.id)
-											? "table-active cursor-pointer"
-											: "cursor-pointer"
-									}
-									onClick={() => onCategorySelect(category)}
-								>
-									<td>
-										<Form.Check
-											type="checkbox"
-											id={`category-${category.id}`}
-											checked={selectedCategories.some(
-												(c) => c.id === category.id,
-											)}
-											onChange={() => onCategorySelect(category)}
-										/>
-									</td>
-									<td>{category.name}</td>
-									<td>{category.description || "No description available"}</td>
-									<td>
-										{format(
-											new Date(category.updatedAt),
-											"HH:mm:ss dd/MM/yyyy",
-										)}
-									</td>
-									<td>
-										{format(
-											new Date(category.createdAt),
-											"HH:mm:ss dd/MM/yyyy",
-										)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</Table>
-				</div>
 			</div>
 		</div>
 	);
 };
+
+export default CategoryTable;
