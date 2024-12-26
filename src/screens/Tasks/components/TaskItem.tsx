@@ -5,13 +5,12 @@ import { Category } from "~/types/Category";
 import { Task } from "~/types/Task";
 import DeleteModal from "./DeleteModal";
 import { TaskForm } from "./TaskForm";
-import { TaskEditModal } from "./TaskEditModal";
+import { TaskFormModal } from "./TaskFormModal";
 
 interface TaskItemProps {
 	task: Task;
 	categories: Category[];
 	index: number;
-	isAdding: boolean;
 	onEdit: (isEditing: boolean) => void;
 }
 
@@ -19,14 +18,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 	task,
 	categories,
 	index,
-	isAdding,
 	onEdit,
 }) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
 	const handleRowClick = (e: React.MouseEvent) => {
-		if (isAdding) return;
 		const isActionColumn = (e.target as HTMLElement).closest("td:last-child");
 		if (!isActionColumn) {
 			setIsEditing(true);
@@ -52,13 +49,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 
 	return (
 		<>
-			<tr
-				onClick={handleRowClick}
-				style={{
-					cursor: isAdding ? "not-allowed" : "pointer",
-					opacity: isAdding ? 0.8 : 1,
-				}}
-			>
+			<tr onClick={handleRowClick}>
 				<td>{index}</td>
 				<td>{task.title}</td>
 				<td>{(task.categories || []).map((cat) => cat.name).join(", ")}</td>
@@ -71,7 +62,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 							variant="primary"
 							onClick={() => setIsOpenEditModal(true)}
 							size="sm"
-							disabled={isAdding}
 						>
 							Edit
 						</Button>
@@ -79,7 +69,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 							variant="danger"
 							onClick={() => setIsOpenDeleteModal(true)}
 							size="sm"
-							disabled={isAdding}
 						>
 							Delete
 						</Button>
@@ -99,7 +88,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 			)}
 
 			{isOpenEditModal && (
-				<TaskEditModal
+				<TaskFormModal
 					isOpen={isOpenEditModal}
 					task={task}
 					categories={categories}

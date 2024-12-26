@@ -1,30 +1,29 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { Button, Container, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import { useCategories } from "~/hook/useCategories";
 import { useTasks } from "~/hook/useTasks";
 import { getTasks } from "~/store/slices/taskSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Pagination } from "./components/Pagination";
 import SearchBar from "./components/SearchBar";
-import TaskForm from "./components/TaskForm";
+import { TaskFormModal } from "./components/TaskFormModal";
 import { TaskItem } from "./components/TaskItem";
+import { getCategories } from "~/store/slices/categorySlice";
 
 const TaskList: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { tasks, meta } = useSelector((state: RootState) => state.task);
 	const { categories } = useSelector((state: RootState) => state.category);
-	const { fetchCategories } = useCategories();
 	const { fetchTasks } = useTasks();
 	const [searchParams] = useSearchParams();
 	const [isAdding, setIsAdding] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 
 	useEffect(() => {
-		fetchCategories();
-	}, []);
+		dispatch(getCategories({ query: "" }));
+	}, [dispatch]);
+
 	useEffect(() => {
 		fetchTasks();
 	}, [fetchTasks, searchParams]);
@@ -57,10 +56,10 @@ const TaskList: React.FC = () => {
 				</thead>
 				<tbody>
 					{isAdding && (
-						<TaskForm
+						<TaskFormModal
+							isOpen={isAdding}
 							categories={categories}
-							index={1}
-							onCancel={() => setIsAdding(false)}
+							onClose={() => setIsAdding(false)}
 						/>
 					)}
 					{tasks.map((task, index) => (
@@ -69,7 +68,6 @@ const TaskList: React.FC = () => {
 							task={task}
 							categories={categories}
 							index={isAdding ? index + 2 : index + 1}
-							isAdding={isAdding}
 							onEdit={setIsEditing}
 						/>
 					))}

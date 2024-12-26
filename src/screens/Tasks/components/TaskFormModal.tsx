@@ -5,10 +5,11 @@ import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "~/components/Toast";
 import { useTasks } from "~/hook/useTasks";
-import { UpdateTaskRequest } from "~/services/taskApi";
-import { updateTask } from "~/store/slices/taskSlice";
+import { CreateTaskRequest, UpdateTaskRequest } from "~/services/taskApi";
+import { addTask, updateTask } from "~/store/slices/taskSlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Category } from "~/types/Category";
+import { TaskStatus } from "~/types/StatusEnum";
 import { Task } from "~/types/Task";
 import yup from "~/validations/schema/yup";
 import { CategoryTable } from "./CategoryTable";
@@ -17,35 +18,38 @@ import { StatusDropdown } from "./StatusDropdown";
 const taskSchema = yup.object().shape({
 	title: yup.string().taskTitle(),
 });
-interface TaskEditModalProps {
+
+interface TaskFormModalProps {
 	isOpen: boolean;
-	task: Task;
+	task?: Task;
 	categories: Category[];
 	onClose: () => void;
 }
 
-export const TaskEditModal: React.FC<TaskEditModalProps> = ({
+export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 	isOpen,
 	task,
 	categories,
 	onClose,
 }) => {
+	const isEditMode = Boolean(task);
 	const { showToast } = useToast();
 	const dispatch = useDispatch<AppDispatch>();
 	const { isLoading } = useSelector((state: RootState) => state.task);
 	const { fetchTasks } = useTasks();
+
 	const {
 		control,
 		handleSubmit,
 		setValue,
 		watch,
 		formState: { errors, isDirty, isValid },
-	} = useForm<UpdateTaskRequest>({
+	} = useForm<CreateTaskRequest | UpdateTaskRequest>({
 		resolver: yupResolver(taskSchema),
 		defaultValues: {
 			title: task?.title,
 			categories: task?.categories,
-			status: task?.status,
+			status: task?.status ?? TaskStatus.TODO,
 		},
 		mode: "onChange",
 	});
@@ -64,21 +68,33 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 		});
 	};
 
-	const onSubmit = async (data: UpdateTaskRequest) => {
+	const onSubmit = async (data: CreateTaskRequest | UpdateTaskRequest) => {
 		try {
-			await dispatch(updateTask({ taskId: task.id, taskData: data })).unwrap();
-			showToast("Task updated successfully!");
+			if (isEditMode) {
+				await dispatch(
+					updateTask({ taskId: task!.id, taskData: data as UpdateTaskRequest }),
+				).unwrap();
+				showToast("Task updated successfully!");
+			} else {
+				await dispatch(addTask(data as CreateTaskRequest)).unwrap();
+				showToast("Task created successfully!");
+			}
 			fetchTasks();
 			onClose();
 		} catch {
-			showToast("Error occurred while updating task!", "danger");
+			showToast(
+				`Error occurred while ${isEditMode ? "updating" : "creating"} task!`,
+				"danger",
+			);
 		}
 	};
 
 	return (
 		<Modal show={isOpen} onHide={onClose} size="lg">
 			<Modal.Header closeButton>
-				<Modal.Title>Edit Task</Modal.Title>
+				<Modal.Title>
+					{isEditMode ? "Edit Task" : "Create New Task"}
+				</Modal.Title>
 			</Modal.Header>
 			<Form onSubmit={handleSubmit(onSubmit)}>
 				<Modal.Body>
@@ -128,7 +144,11 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 						variant="primary"
 						disabled={!isDirty || !isValid || isLoading}
 					>
-						{isLoading ? "Saving..." : "Save Changes"}
+						{isLoading
+							? "Saving..."
+							: isEditMode
+								? "Save Changes"
+								: "Create Task"}
 					</Button>
 				</Modal.Footer>
 			</Form>

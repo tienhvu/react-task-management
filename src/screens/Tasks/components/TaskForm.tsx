@@ -1,6 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { format } from "date-fns";
-import React, { useEffect } from "react";
+import React from "react";
 import { Button } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -58,11 +58,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 		watch,
 		formState: { errors, isDirty, isValid },
 	} = form;
-
-	useEffect(() => {
-		register("categories", { required: "Categories are required" });
-		register("status", { required: "Status is required" });
-	}, [register]);
 
 	const watchCategories = watch("categories") || [];
 
