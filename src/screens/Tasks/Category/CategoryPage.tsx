@@ -18,9 +18,10 @@ const CategoryPage = () => {
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [categorySelected, setCategorySelected] = useState<Category>();
 	const navigate = useNavigate();
+
 	useEffect(() => {
 		fetchCategories();
-	}, [searchParams]);
+	}, [fetchCategories, searchParams]);
 
 	const handleOpenModal = (type: "edit" | "delete", category: Category) => {
 		setCategorySelected(category);
