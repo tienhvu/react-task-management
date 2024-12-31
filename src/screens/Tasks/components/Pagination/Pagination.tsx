@@ -57,6 +57,9 @@ export const Pagination: React.FC = () => {
 							min={1}
 							max={totalPages}
 							value={currentPage}
+							onChange={(e) =>
+								handlePageChange(Number(e.target.value), totalPages)
+							}
 							onBlur={() => handlePageChange(currentPage, totalPages)}
 							style={{ width: "80px", textAlign: "center" }}
 						/>

@@ -22,7 +22,7 @@ const taskSchema = yup.object().shape({
 });
 
 interface TaskFormProps {
-	onCancel: () => void;
+	onClose: () => void;
 	initialData?: Task | null;
 }
 
@@ -32,10 +32,7 @@ interface TaskFormData {
 	status?: TaskStatus;
 }
 
-export const TaskForm: React.FC<TaskFormProps> = ({
-	onCancel,
-	initialData,
-}) => {
+export const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialData }) => {
 	const dispatch = useDispatch<AppDispatch>();
 	const { showToast } = useToast();
 	const { fetchTasks } = useTasks();
@@ -43,9 +40,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
 	const form = useForm<TaskFormData>({
 		defaultValues: {
-			title: initialData?.title,
-			categories: initialData?.categories,
-			status: initialData?.status,
+			...initialData,
 		},
 		resolver: yupResolver(taskSchema),
 		mode: "onChange",
@@ -58,8 +53,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 		formState: { errors, isDirty, isValid },
 	} = form;
 
-	const status = watch("status");
-	const categories = watch("categories");
+	const [status, categories] = watch(["status", "categories"]);
 
 	const handleSave = async (data: TaskFormData) => {
 		if (!isDirty || !isValid) return;
@@ -85,7 +79,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 			}
 
 			fetchTasks();
-			onCancel();
+			onClose();
 		} catch (error) {
 			showToast(
 				`Error ${initialData ? "updating" : "creating"} task!`,
@@ -104,7 +98,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 		}
 	};
 	const rowRef = useRef<HTMLTableRowElement>(null);
-	useOnClickOutside(rowRef, onCancel);
+	useOnClickOutside(rowRef, onClose);
 
 	useEffect(() => {
 		if (isDirty && isValid && initialData) {
@@ -140,7 +134,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 					</form>
 				</td>
 				<td className="p-2">
-					<CategorySelect value={categories} />
+					<CategorySelect selectedCategories={categories} />
 				</td>
 				<td className="p-2">
 					<StatusDropdown />
@@ -157,7 +151,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 					: "-"}
 			</td>
 			<td className="p-2 space-x-2">
-				<Button onClick={onCancel} size="sm" variant="secondary">
+				<Button onClick={onClose} size="sm" variant="secondary">
 					Cancel
 				</Button>
 			</td>

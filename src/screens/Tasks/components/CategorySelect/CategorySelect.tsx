@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ChevronDown } from "react-bootstrap-icons";
 import { useFormContext } from "react-hook-form";
 import { useSelector } from "react-redux";
@@ -8,41 +8,41 @@ import { RootState } from "~/store/store";
 import { Category } from "~/types/Category";
 import { styles } from "./style";
 
-interface CategorySelectProps {
-	value?: Category[];
+interface Props {
+	selectedCategories?: Category[];
 }
 
-export const CategorySelect = ({ value = [] }: CategorySelectProps) => {
+export const CategorySelect = ({ selectedCategories = [] }: Props) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const { categories } = useSelector((state: RootState) => state.category);
-	const [selectedCategories, setSelectedCategories] =
-		useState<Category[]>(value);
 	const debouncedSearch = useDebounce(searchTerm, 500);
 	const containerRef = useRef(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
-
 	const { setValue } = useFormContext();
 
-	const filteredCategories = categories.filter(
-		(category) =>
-			category.name.toLowerCase().includes(debouncedSearch.toLowerCase()) &&
-			!selectedCategories.some((v) => v.id === category.id),
+	const filteredCategories = useMemo(
+		() =>
+			categories.filter(
+				(category) =>
+					category.name.toLowerCase().includes(debouncedSearch.toLowerCase()) &&
+					!selectedCategories.some((v) => v.id === category.id),
+			),
+		[categories, debouncedSearch, selectedCategories],
 	);
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
 			e.preventDefault();
-			//Xử lí tránh trường hợp khi search và enter thì lập tức chọn giá trị đầu tiên trong list category
 			if (
 				highlightedIndex >= 0 &&
 				highlightedIndex < filteredCategories.length
 			) {
 				handleAddCategory(filteredCategories[highlightedIndex]);
-				setHighlightedIndex(-1);
 			}
 			setIsOpen(false);
+			setHighlightedIndex(-1);
 		} else if (e.key === "ArrowDown") {
 			e.preventDefault();
 			setHighlightedIndex((prev) =>
@@ -60,7 +60,6 @@ export const CategorySelect = ({ value = [] }: CategorySelectProps) => {
 	});
 
 	const handleAddCategory = (category: Category) => {
-		setSelectedCategories((prev) => [...prev, category]);
 		setValue("categories", [...selectedCategories, category], {
 			shouldDirty: true,
 			shouldValidate: true,
@@ -73,7 +72,6 @@ export const CategorySelect = ({ value = [] }: CategorySelectProps) => {
 		const newCategories = selectedCategories.filter(
 			(c) => c.id !== category.id,
 		);
-		setSelectedCategories(newCategories);
 		setValue("categories", newCategories, {
 			shouldDirty: true,
 			shouldValidate: true,

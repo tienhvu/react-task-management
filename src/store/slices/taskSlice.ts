@@ -8,7 +8,6 @@ import {
 	UpdateTaskRequest,
 } from "~/services/taskApi";
 import { Task } from "~/types/Task";
-import { updateCategory } from "./categorySlice";
 
 interface TaskState {
 	tasks: Task[];
@@ -19,7 +18,7 @@ interface TaskState {
 	};
 	isLoading: boolean;
 	error: string | null;
-	editingTaskId: string | null;
+	isEditingTask: string | null;
 }
 
 const initialState: TaskState = {
@@ -31,7 +30,7 @@ const initialState: TaskState = {
 	},
 	isLoading: false,
 	error: null,
-	editingTaskId: null,
+	isEditingTask: null,
 };
 
 // Async thunks
@@ -108,7 +107,7 @@ const taskSlice = createSlice({
 			state.error = null;
 		},
 		setEditingTaskId: (state, action) => {
-			state.editingTaskId = action.payload;
+			state.isEditingTask = action.payload;
 		},
 	},
 	extraReducers: (builder) => {
@@ -168,22 +167,6 @@ const taskSlice = createSlice({
 			.addCase(getTasks.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
-			})
-
-			.addCase(updateCategory.fulfilled, (state, action) => {
-				const updatedCategory = action.payload;
-				state.tasks.forEach((task) => {
-					const categoryIndex = task.categories.findIndex(
-						(cat) => cat.id === updatedCategory.id,
-					);
-					if (categoryIndex !== -1) {
-						task.categories[categoryIndex] = {
-							...task.categories[categoryIndex],
-							name: updatedCategory.name,
-							description: updatedCategory.description,
-						};
-					}
-				});
 			});
 	},
 });

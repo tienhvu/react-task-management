@@ -128,9 +128,8 @@ export const categoryHandlers = [
 			}
 		});
 		updateCategoryStorage();
-		console.log("Tasks after update:", tasks);
 		updateTaskStorage();
-		console.log("LocalStorage after update:", tasks);
+
 		return HttpResponse.json(
 			{ data: existingCategory, message: "Category updated successfully" },
 			{ status: 200 },

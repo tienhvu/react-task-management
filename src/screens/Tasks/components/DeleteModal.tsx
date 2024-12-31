@@ -31,7 +31,7 @@ const DeleteModal = <T extends DeletableItem>({
 	const { fetchTasks } = useTasks();
 	const { total } = useSelector((state: RootState) => state.task.meta);
 
-	const { currentPage, currentLimit, handlePageChange } = usePagination(1, 10);
+	const { currentLimit, handlePageChange } = usePagination(1, 10);
 
 	const totalPages = Math.ceil(total / currentLimit);
 
@@ -45,13 +45,7 @@ const DeleteModal = <T extends DeletableItem>({
 				await dispatch(deleteTask(item.id)).unwrap();
 				showToast("Xóa công việc thành công");
 				fetchTasks();
-			}
-
-			if (
-				currentPage === totalPages &&
-				total - 1 === (currentPage - 1) * currentLimit
-			) {
-				handlePageChange(currentPage - 1, totalPages);
+				handlePageChange(1, totalPages);
 			}
 
 			onClose();

@@ -13,7 +13,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 
 	useEffect(() => {
 		const params = new URLSearchParams(searchParams);
-		params.set("query", debouncedValue.trim() ?? "");
+		const trimmedValue = debouncedValue.trim();
+
+		if (trimmedValue) {
+			params.set("query", trimmedValue);
+		} else {
+			params.delete("query");
+		}
+
 		setSearchParams(params);
 	}, [debouncedValue, searchParams, setSearchParams]);
 

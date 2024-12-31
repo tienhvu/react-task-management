@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Button, Container, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { useCategories } from "~/hook/useCategories";
 import { useTasks } from "~/hook/useTasks";
-import { getCategories } from "~/store/slices/categorySlice";
 import { AppDispatch, RootState } from "~/store/store";
 import { Pagination } from "./components/Pagination/Pagination";
 import SearchBar from "./components/SearchBar";
@@ -13,23 +13,21 @@ import { TaskItem } from "./components/TaskItem";
 
 const TasksScreen: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
-	const { tasks, editingTaskId } = useSelector(
+	const { tasks, isEditingTask } = useSelector(
 		(state: RootState) => state.task,
 	);
 	const { fetchTasks } = useTasks();
+	const { fetchCategories } = useCategories();
 	const [searchParams] = useSearchParams();
 	const [isAdding, setIsAdding] = useState(false);
+
 	useEffect(() => {
-		dispatch(getCategories({ query: "" }));
+		fetchCategories();
 	}, [dispatch]);
 
 	useEffect(() => {
 		fetchTasks();
 	}, [searchParams]);
-
-	const handleAdd = () => {
-		setIsAdding(true);
-	};
 
 	return (
 		<Container>
@@ -67,8 +65,8 @@ const TasksScreen: React.FC = () => {
 			<div className="d-flex justify-content-between mt-3">
 				<Button
 					variant="success"
-					onClick={handleAdd}
-					disabled={Boolean(editingTaskId)}
+					onClick={() => setIsAdding(true)}
+					disabled={Boolean(isEditingTask)}
 				>
 					+ Add new task
 				</Button>

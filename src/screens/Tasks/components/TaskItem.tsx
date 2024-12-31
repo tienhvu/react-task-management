@@ -9,11 +9,11 @@ import DeleteModal from "./DeleteModal";
 import { TaskForm } from "./TaskForm";
 import { TaskFormModal } from "./TaskFormModal";
 
-interface TaskItemProps {
+interface Props {
 	task: Task;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
+export const TaskItem: React.FC<Props> = ({ task }) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
@@ -32,7 +32,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 	};
 
 	if (isEditing) {
-		return <TaskForm onCancel={handleCancelEdit} initialData={task} />;
+		return <TaskForm onClose={handleCancelEdit} initialData={task} />;
 	}
 
 	return (

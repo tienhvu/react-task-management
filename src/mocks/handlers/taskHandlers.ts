@@ -15,7 +15,13 @@ type CreateTaskRequest = {
 };
 
 type UpdateTaskRequest = Partial<CreateTaskRequest>;
-const tasks: Task[] = JSON.parse(localStorage.getItem("tasks") || "[]");
+
+const getTasksFromStorage = (): Task[] => {
+	return JSON.parse(localStorage.getItem("tasks") || "[]");
+};
+
+const tasks: Task[] = getTasksFromStorage();
+
 function updateTaskStorage() {
 	localStorage.setItem("tasks", JSON.stringify(tasks));
 }
@@ -111,15 +117,17 @@ export const taskHandlers = [
 	http.get<{}, {}, PaginatedResponse<Task>>(
 		`${baseURL}/tasks`,
 		async ({ request }) => {
-			const tasks: Task[] = JSON.parse(localStorage.getItem("tasks") || "[]");
+			const currentTasks = getTasksFromStorage();
 			const urlObj = new URL(request.url);
 			const query = urlObj.searchParams.get("query")?.toLowerCase();
 			const page = parseInt(urlObj.searchParams.get("page") || "1", 10);
 			const limit = parseInt(urlObj.searchParams.get("limit") || "10", 10);
 
 			const filteredTasks = query
-				? tasks.filter((task) => task.title.toLowerCase().includes(query))
-				: tasks;
+				? currentTasks.filter((task) =>
+						task.title.toLowerCase().includes(query),
+					)
+				: currentTasks;
 
 			const sortedTasks = filteredTasks.sort((a, b) => {
 				return (

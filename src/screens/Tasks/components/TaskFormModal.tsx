@@ -25,12 +25,6 @@ interface TaskFormModalProps {
 	onClose: () => void;
 }
 
-interface TaskFormModalProps {
-	isOpen: boolean;
-	task?: Task;
-	onClose: () => void;
-}
-
 export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 	isOpen,
 	task,
@@ -97,6 +91,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 							<Controller
 								name="title"
 								control={control}
+								defaultValue=""
 								render={({ field }) => (
 									<Form.Control
 										{...field}
