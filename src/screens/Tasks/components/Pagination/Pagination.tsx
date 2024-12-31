@@ -1,48 +1,24 @@
-import { useState } from "react";
 import {
 	Button,
-	Form,
-	InputGroup,
 	Dropdown,
 	DropdownButton,
+	Form,
+	InputGroup,
 } from "react-bootstrap";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import { useSelector } from "react-redux";
+import { usePagination } from "~/hook/usePagination";
+import { RootState } from "~/store/store";
 
-interface PaginationProps {
-	totalPages: number;
-	currentPage: number;
-	onPageChange: (page: number) => void;
-	totalItems: number;
-	pageSize: number;
-	onPageSizeChange: (newPageSize: number) => void;
-}
+export const Pagination: React.FC = () => {
+	const { total } = useSelector((state: RootState) => state.task.meta);
 
-export const Pagination: React.FC<PaginationProps> = ({
-	totalPages,
-	currentPage,
-	onPageChange,
-	totalItems,
-	pageSize,
-	onPageSizeChange,
-}) => {
-	const [inputPage, setInputPage] = useState(currentPage);
+	const { currentPage, currentLimit, handlePageChange, handlePageSizeChange } =
+		usePagination(1, 10);
 
-	const handlePageChange = (page: number) => {
-		if (page > 0 && page <= totalPages) {
-			setInputPage(page);
-			onPageChange(page);
-		}
-	};
-
-	const handlePageSizeChange = (eventKey: string | null) => {
-		if (eventKey) {
-			const newSize = Number(eventKey);
-			onPageSizeChange(newSize);
-		}
-	};
-
-	const startItem = (currentPage - 1) * pageSize + 1;
-	const endItem = Math.min(currentPage * pageSize, totalItems);
+	const totalPages = Math.ceil(total / currentLimit);
+	const startItem = (currentPage - 1) * currentLimit + 1;
+	const endItem = Math.min(currentPage * currentLimit, total);
 
 	return (
 		<div className="pagination-container mt-3">
@@ -51,7 +27,7 @@ export const Pagination: React.FC<PaginationProps> = ({
 					<span className="me-2">Rows per page:</span>
 					<DropdownButton
 						id="dropdown-basic-button"
-						title={`${pageSize}`}
+						title={`${currentLimit}`}
 						onSelect={handlePageSizeChange}
 						variant="outline-secondary"
 						className="me-3"
@@ -64,14 +40,14 @@ export const Pagination: React.FC<PaginationProps> = ({
 					</DropdownButton>
 					<span>
 						<strong>{startItem}</strong> - <strong>{endItem}</strong> of{" "}
-						<strong>{totalItems}</strong>
+						<strong>{total}</strong>
 					</span>
 				</div>
 				<div>
 					<InputGroup>
 						<Button
 							variant="outline-secondary"
-							onClick={() => handlePageChange(currentPage - 1)}
+							onClick={() => handlePageChange(currentPage - 1, totalPages)}
 							disabled={currentPage === 1}
 						>
 							<ChevronLeft />
@@ -80,14 +56,13 @@ export const Pagination: React.FC<PaginationProps> = ({
 							type="number"
 							min={1}
 							max={totalPages}
-							value={inputPage}
-							onChange={(e) => setInputPage(Number(e.target.value))}
-							onBlur={() => handlePageChange(inputPage)}
+							value={currentPage}
+							onBlur={() => handlePageChange(currentPage, totalPages)}
 							style={{ width: "80px", textAlign: "center" }}
 						/>
 						<Button
 							variant="outline-secondary"
-							onClick={() => handlePageChange(currentPage + 1)}
+							onClick={() => handlePageChange(currentPage + 1, totalPages)}
 							disabled={currentPage === totalPages}
 						>
 							<ChevronRight />

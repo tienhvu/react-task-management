@@ -1,19 +1,20 @@
 import { useState, useRef } from "react";
 import { Dropdown } from "react-bootstrap";
+import { useFormContext } from "react-hook-form";
 import { TaskStatus } from "~/types/StatusEnum";
 
-interface StatusDropdownProps {
-	selectedStatus?: TaskStatus;
-	changeStatus: (status: TaskStatus) => void;
-}
-
-export const StatusDropdown = ({
-	selectedStatus,
-	changeStatus,
-}: StatusDropdownProps) => {
+export const StatusDropdown = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef(null);
+	const { watch, setValue } = useFormContext();
+
+	const selectedStatus = watch("status");
 	const statuses = Object.values(TaskStatus);
+
+	const handleStatusChange = (status: TaskStatus) => {
+		setValue("status", status, { shouldDirty: true });
+		setIsOpen(false);
+	};
 
 	return (
 		<Dropdown
@@ -30,10 +31,7 @@ export const StatusDropdown = ({
 				{statuses.map((status) => (
 					<Dropdown.Item
 						key={status}
-						onClick={() => {
-							changeStatus(status);
-							setIsOpen(false);
-						}}
+						onClick={() => handleStatusChange(status)}
 					>
 						{status}
 					</Dropdown.Item>
@@ -42,5 +40,3 @@ export const StatusDropdown = ({
 		</Dropdown>
 	);
 };
-
-export default StatusDropdown;

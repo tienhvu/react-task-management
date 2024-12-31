@@ -1,13 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
 	add,
+	CreateTaskRequest,
+	get,
 	remove,
 	update,
-	get,
 	UpdateTaskRequest,
-	CreateTaskRequest,
 } from "~/services/taskApi";
 import { Task } from "~/types/Task";
+import { updateCategory } from "./categorySlice";
 
 interface TaskState {
 	tasks: Task[];
@@ -18,6 +19,7 @@ interface TaskState {
 	};
 	isLoading: boolean;
 	error: string | null;
+	editingTaskId: string | null;
 }
 
 const initialState: TaskState = {
@@ -29,6 +31,7 @@ const initialState: TaskState = {
 	},
 	isLoading: false,
 	error: null,
+	editingTaskId: null,
 };
 
 // Async thunks
@@ -104,6 +107,9 @@ const taskSlice = createSlice({
 		clearTaskError: (state) => {
 			state.error = null;
 		},
+		setEditingTaskId: (state, action) => {
+			state.editingTaskId = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -162,9 +168,25 @@ const taskSlice = createSlice({
 			.addCase(getTasks.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
+			})
+
+			.addCase(updateCategory.fulfilled, (state, action) => {
+				const updatedCategory = action.payload;
+				state.tasks.forEach((task) => {
+					const categoryIndex = task.categories.findIndex(
+						(cat) => cat.id === updatedCategory.id,
+					);
+					if (categoryIndex !== -1) {
+						task.categories[categoryIndex] = {
+							...task.categories[categoryIndex],
+							name: updatedCategory.name,
+							description: updatedCategory.description,
+						};
+					}
+				});
 			});
 	},
 });
 
-export const { clearTaskError } = taskSlice.actions;
+export const { clearTaskError, setEditingTaskId } = taskSlice.actions;
 export default taskSlice.reducer;

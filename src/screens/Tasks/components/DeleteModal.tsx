@@ -1,10 +1,11 @@
 import { Button, Modal } from "react-bootstrap";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "~/components/Toast";
 import { useTasks } from "~/hook/useTasks";
 import { deleteCategory, getCategories } from "~/store/slices/categorySlice";
 import { deleteTask } from "~/store/slices/taskSlice";
-import { AppDispatch } from "~/store/store";
+import { AppDispatch, RootState } from "~/store/store";
+import { usePagination } from "~/hook/usePagination";
 
 interface DeletableItem {
 	id: string;
@@ -28,6 +29,12 @@ const DeleteModal = <T extends DeletableItem>({
 	const dispatch = useDispatch<AppDispatch>();
 	const { showToast } = useToast();
 	const { fetchTasks } = useTasks();
+	const { total } = useSelector((state: RootState) => state.task.meta);
+
+	const { currentPage, currentLimit, handlePageChange } = usePagination(1, 10);
+
+	const totalPages = Math.ceil(total / currentLimit);
+
 	const handleDelete = async () => {
 		try {
 			if (itemType === "category") {
@@ -39,6 +46,14 @@ const DeleteModal = <T extends DeletableItem>({
 				showToast("Xóa công việc thành công");
 				fetchTasks();
 			}
+
+			if (
+				currentPage === totalPages &&
+				total - 1 === (currentPage - 1) * currentLimit
+			) {
+				handlePageChange(currentPage - 1, totalPages);
+			}
+
 			onClose();
 		} catch {
 			showToast(

@@ -11,11 +11,7 @@ export interface CreateTaskRequest {
 	status?: TaskStatus;
 }
 
-export interface UpdateTaskRequest {
-	title?: string;
-	categories?: Category[];
-	status?: TaskStatus;
-}
+export type UpdateTaskRequest = Partial<CreateTaskRequest>;
 
 // Add task
 export const add = (taskData: CreateTaskRequest): Promise<Response<Task>> => {

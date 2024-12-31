@@ -1,7 +1,9 @@
 import { format } from "date-fns";
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
-import { Category } from "~/types/Category";
+import { useDispatch } from "react-redux";
+import { setEditingTaskId } from "~/store/slices/taskSlice";
+import { AppDispatch } from "~/store/store";
 import { Task } from "~/types/Task";
 import DeleteModal from "./DeleteModal";
 import { TaskForm } from "./TaskForm";
@@ -9,48 +11,34 @@ import { TaskFormModal } from "./TaskFormModal";
 
 interface TaskItemProps {
 	task: Task;
-	categories: Category[];
-	index: number;
-	onEdit: (isEditing: boolean) => void;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({
-	task,
-	categories,
-	index,
-	onEdit,
-}) => {
+export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+	const dispatch = useDispatch<AppDispatch>();
 	const handleRowClick = (e: React.MouseEvent) => {
 		const isActionColumn = (e.target as HTMLElement).closest("td:last-child");
 		if (!isActionColumn) {
 			setIsEditing(true);
-			onEdit(true);
+			dispatch(setEditingTaskId(task.id));
 		}
 	};
 
 	const handleCancelEdit = () => {
 		setIsEditing(false);
-		onEdit(false);
+		dispatch(setEditingTaskId(null));
 	};
 
 	if (isEditing) {
-		return (
-			<TaskForm
-				onCancel={handleCancelEdit}
-				index={index}
-				initialData={task}
-				categories={categories}
-			/>
-		);
+		return <TaskForm onCancel={handleCancelEdit} initialData={task} />;
 	}
 
 	return (
 		<>
 			<tr onClick={handleRowClick}>
-				<td>{index}</td>
+				<td>{task.id}</td>
 				<td>{task.title}</td>
 				<td>{(task.categories || []).map((cat) => cat.name).join(", ")}</td>
 				<td>{task.status}</td>
@@ -91,7 +79,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 				<TaskFormModal
 					isOpen={isOpenEditModal}
 					task={task}
-					categories={categories}
 					onClose={() => {
 						setIsOpenEditModal(false);
 					}}

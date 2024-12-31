@@ -7,16 +7,15 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
-	const [, setSearchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [searchValue, setSearchValue] = useState("");
 	const debouncedValue = useDebounce(searchValue, 500);
 
 	useEffect(() => {
-		const query = debouncedValue.trim()
-			? { query: debouncedValue.trim() }
-			: ({} as URLSearchParams);
-		setSearchParams(query);
-	}, [debouncedValue, setSearchParams]);
+		const params = new URLSearchParams(searchParams);
+		params.set("query", debouncedValue.trim() ?? "");
+		setSearchParams(params);
+	}, [debouncedValue, searchParams, setSearchParams]);
 
 	return (
 		<Form.Control

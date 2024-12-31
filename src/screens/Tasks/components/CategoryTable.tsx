@@ -1,35 +1,39 @@
 import { format } from "date-fns";
 import { useState } from "react";
 import { Form, InputGroup, Table } from "react-bootstrap";
+import { useFormContext } from "react-hook-form";
+import { useSelector } from "react-redux";
 import { Category } from "~/types/Category";
+import { RootState } from "~/store/store";
 
-interface CategoryTableProps {
-	categories: Category[];
-	selectedCategories: Category[];
-	onCategorySelect: (category: Category) => void;
-}
-
-export const CategoryTable = ({
-	categories,
-	selectedCategories,
-	onCategorySelect,
-}: CategoryTableProps) => {
+export const CategoryTable = () => {
 	const [searchTerm, setSearchTerm] = useState("");
+	const { categories } = useSelector((state: RootState) => state.category);
+	const { watch, setValue } = useFormContext();
+
+	const selectedCategories = watch("categories") || [];
 
 	const filteredCategories = categories.filter((cat) =>
 		cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
 	const isCategorySelected = (id: string) =>
-		selectedCategories.some((category) => category.id === id);
+		selectedCategories.some((category: Category) => category.id === id);
 
-	const handleCheckboxChange = (category: Category) => {
-		onCategorySelect(category);
+	const handleChange = (category: Category) => {
+		const isSelected = isCategorySelected(category.id);
+		const newCategories = isSelected
+			? selectedCategories.filter((c: Category) => c.id !== category.id)
+			: [...selectedCategories, category];
+
+		setValue("categories", newCategories, {
+			shouldDirty: true,
+			shouldValidate: true,
+		});
 	};
 
 	return (
 		<div>
-			{/* Search Bar */}
 			<InputGroup className="mb-3">
 				<Form.Control
 					placeholder="Search category..."
@@ -66,7 +70,7 @@ export const CategoryTable = ({
 										type="checkbox"
 										id={`category-${category.id}`}
 										checked={isCategorySelected(category.id)}
-										onChange={() => handleCheckboxChange(category)}
+										onChange={() => handleChange(category)}
 									/>
 								</td>
 								<td>{category.name}</td>
@@ -92,5 +96,3 @@ export const CategoryTable = ({
 		</div>
 	);
 };
-
-export default CategoryTable;
