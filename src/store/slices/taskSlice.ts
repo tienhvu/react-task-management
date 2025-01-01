@@ -18,7 +18,7 @@ interface TaskState {
 	};
 	isLoading: boolean;
 	error: string | null;
-	isEditingTask: string | null;
+	isEditingTask: boolean;
 }
 
 const initialState: TaskState = {
@@ -30,7 +30,7 @@ const initialState: TaskState = {
 	},
 	isLoading: false,
 	error: null,
-	isEditingTask: null,
+	isEditingTask: false,
 };
 
 // Async thunks
@@ -106,7 +106,7 @@ const taskSlice = createSlice({
 		clearTaskError: (state) => {
 			state.error = null;
 		},
-		setEditingTaskId: (state, action) => {
+		setIsEditingTask: (state, action) => {
 			state.isEditingTask = action.payload;
 		},
 	},
@@ -128,15 +128,9 @@ const taskSlice = createSlice({
 				state.isLoading = true;
 				state.error = null;
 			})
-			.addCase(updateTask.fulfilled, (state, action) => {
+			.addCase(updateTask.fulfilled, (state) => {
 				state.isLoading = false;
-				const updatedTask = action.payload;
-				const index = state.tasks.findIndex(
-					(task) => task.id === updatedTask.id,
-				);
-				if (index !== -1) {
-					state.tasks[index] = updatedTask;
-				}
+				state.error = null;
 			})
 			.addCase(updateTask.rejected, (state, action) => {
 				state.isLoading = false;
@@ -171,5 +165,5 @@ const taskSlice = createSlice({
 	},
 });
 
-export const { clearTaskError, setEditingTaskId } = taskSlice.actions;
+export const { clearTaskError, setIsEditingTask } = taskSlice.actions;
 export default taskSlice.reducer;

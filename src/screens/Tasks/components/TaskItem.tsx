@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import { useDispatch } from "react-redux";
-import { setEditingTaskId } from "~/store/slices/taskSlice";
+import { setIsEditingTask } from "~/store/slices/taskSlice";
 import { AppDispatch } from "~/store/store";
 import { Task } from "~/types/Task";
 import DeleteModal from "./DeleteModal";
@@ -22,13 +22,13 @@ export const TaskItem: React.FC<Props> = ({ task }) => {
 		const isActionColumn = (e.target as HTMLElement).closest("td:last-child");
 		if (!isActionColumn) {
 			setIsEditing(true);
-			dispatch(setEditingTaskId(task.id));
+			dispatch(setIsEditingTask(task.id));
 		}
 	};
 
 	const handleCancelEdit = () => {
 		setIsEditing(false);
-		dispatch(setEditingTaskId(null));
+		dispatch(setIsEditingTask(false));
 	};
 
 	if (isEditing) {

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { ChevronDown } from "react-bootstrap-icons";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useSelector } from "react-redux";
 import useDebounce from "~/hook/useDebounce";
 import { useOnClickOutside } from "~/hook/useOnclickOutside";
@@ -8,11 +8,7 @@ import { RootState } from "~/store/store";
 import { Category } from "~/types/Category";
 import { styles } from "./style";
 
-interface Props {
-	selectedCategories?: Category[];
-}
-
-export const CategorySelect = ({ selectedCategories = [] }: Props) => {
+export const CategorySelect = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const { categories } = useSelector((state: RootState) => state.category);
@@ -20,14 +16,17 @@ export const CategorySelect = ({ selectedCategories = [] }: Props) => {
 	const containerRef = useRef(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
-	const { setValue } = useFormContext();
-
+	const { setValue, control } = useFormContext();
+	const selectedCategories = useWatch({
+		control: control,
+		name: "categories",
+	}) as Category[];
 	const filteredCategories = useMemo(
 		() =>
 			categories.filter(
 				(category) =>
 					category.name.toLowerCase().includes(debouncedSearch.toLowerCase()) &&
-					!selectedCategories.some((v) => v.id === category.id),
+					!selectedCategories.some((v: Category) => v.id === category.id),
 			),
 		[categories, debouncedSearch, selectedCategories],
 	);
@@ -70,7 +69,7 @@ export const CategorySelect = ({ selectedCategories = [] }: Props) => {
 
 	const handleRemoveCategory = (category: Category) => {
 		const newCategories = selectedCategories.filter(
-			(c) => c.id !== category.id,
+			(c: Category) => c.id !== category.id,
 		);
 		setValue("categories", newCategories, {
 			shouldDirty: true,
@@ -92,7 +91,7 @@ export const CategorySelect = ({ selectedCategories = [] }: Props) => {
 			<div className="border rounded bg-white p-2" style={styles.container}>
 				<div className="d-flex flex-wrap gap-2">
 					<div className="d-flex flex-wrap gap-2 mb-2 w-100">
-						{selectedCategories.map((category) => (
+						{selectedCategories.map((category: Category) => (
 							<div
 								key={category.id}
 								className="d-flex align-items-center bg-light rounded py-1 px-2"

@@ -13,7 +13,7 @@ import { Task } from "~/types/Task";
 import yup from "~/validations/schema/yup";
 import { CategoryTable } from "./CategoryTable";
 import { StatusDropdown } from "./StatusDropdown";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const taskSchema = yup.object().shape({
 	title: yup.string().taskTitle(),
@@ -35,6 +35,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 	const dispatch = useDispatch<AppDispatch>();
 	const { isLoading } = useSelector((state: RootState) => state.task);
 	const { fetchTasks } = useTasks();
+	const [searchParams] = useSearchParams();
 
 	const methods = useForm<CreateTaskRequest | UpdateTaskRequest>({
 		resolver: yupResolver(taskSchema),
@@ -53,6 +54,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 	} = methods;
 
 	const navigate = useNavigate();
+	const currentLimit = searchParams.get("limit");
 
 	const onSubmit = async (data: CreateTaskRequest | UpdateTaskRequest) => {
 		try {
@@ -65,7 +67,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 				await dispatch(addTask(data as CreateTaskRequest)).unwrap();
 				showToast("Task created successfully!");
 			}
-			navigate("?page=1");
+			navigate(`?page=1&limit=${currentLimit}`);
 			fetchTasks();
 			onClose();
 		} catch {

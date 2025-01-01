@@ -120,12 +120,14 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialData }) => {
 							}
 						}}
 					>
-						<input
-							{...register("title")}
-							className="w-full p-1 border rounded"
-							placeholder="Task title"
-							onKeyDown={handleKeyDown}
-						/>
+						<div style={{ overflow: "hidden" }}>
+							<input
+								{...register("title")}
+								className="w-full p-1 border rounded"
+								placeholder="Task title"
+								onKeyDown={handleKeyDown}
+							/>
+						</div>
 						{errors.title && (
 							<div className="mt-1 text-sm text-danger">
 								{errors.title.message}
@@ -134,7 +136,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialData }) => {
 					</form>
 				</td>
 				<td className="p-2">
-					<CategorySelect selectedCategories={categories} />
+					<CategorySelect />
 				</td>
 				<td className="p-2">
 					<StatusDropdown />
