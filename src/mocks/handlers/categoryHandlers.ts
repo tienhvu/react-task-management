@@ -4,6 +4,7 @@ import { baseURL } from "~/api/axiosInstance";
 import { ErrorResponse } from "~/types/ErrorResponse";
 import { v4 as uuidv4 } from "uuid";
 import { Category } from "~/types/Category";
+import { Task } from "~/types/Task";
 
 type CreateCategoryRequest = {
 	name: string;
@@ -29,10 +30,15 @@ const categories: Category[] = JSON.parse(
 	localStorage.getItem("categories") || "[]",
 );
 
+const tasks: Task[] = JSON.parse(localStorage.getItem("tasks") || "[]");
+
 function updateCategoryStorage() {
 	localStorage.setItem("categories", JSON.stringify(categories));
 }
 
+function updateTaskStorage() {
+	localStorage.setItem("tasks", JSON.stringify(tasks));
+}
 export const categoryHandlers = [
 	// Add category
 	http.post<{}, CreateCategoryRequest, CategoryResponse | ErrorResponse>(
@@ -113,7 +119,16 @@ export const categoryHandlers = [
 			categoryUpdate.description ?? existingCategory.description;
 		existingCategory.updatedAt = new Date();
 
+		tasks.forEach((task) => {
+			const categoryIndex = task.categories.findIndex(
+				(cat) => cat.id === categoryId,
+			);
+			if (categoryIndex !== -1) {
+				task.categories[categoryIndex].name = existingCategory.name;
+			}
+		});
 		updateCategoryStorage();
+		updateTaskStorage();
 
 		return HttpResponse.json(
 			{ data: existingCategory, message: "Category updated successfully" },
@@ -139,8 +154,14 @@ export const categoryHandlers = [
 				);
 			}
 
+			tasks.forEach((task) => {
+				task.categories = task.categories.filter(
+					(category) => category.id !== categoryId,
+				);
+			});
 			categories.splice(categoryIndex, 1);
 			updateCategoryStorage();
+			updateTaskStorage();
 
 			return HttpResponse.json(undefined, { status: 204 });
 		},

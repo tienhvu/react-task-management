@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useDebounce from "~/hook/useDebounce";
@@ -13,11 +12,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 	const debouncedValue = useDebounce(searchValue, 500);
 
 	useEffect(() => {
-		const query = debouncedValue.trim()
-			? { query: debouncedValue.trim() }
-			: ({} as URLSearchParams);
-		setSearchParams(query);
-	}, [debouncedValue, setSearchParams]);
+		const params = new URLSearchParams(searchParams);
+		const trimmedValue = debouncedValue.trim();
+
+		if (trimmedValue) {
+			params.set("query", trimmedValue);
+		} else {
+			params.delete("query");
+		}
+
+		setSearchParams(params);
+	}, [debouncedValue, searchParams, setSearchParams]);
 
 	return (
 		<Form.Control

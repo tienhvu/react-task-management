@@ -8,7 +8,7 @@ import LoginForm from "~/screens/Auth/Login";
 import RegisterForm from "~/screens/Auth/Register";
 import AddCategory from "~/screens/Tasks/Category/AddCategory";
 import CategoryPage from "~/screens/Tasks/Category/CategoryPage";
-import Task from "~/screens/Tasks/Task";
+import TasksScreen from "~/screens/Tasks/TaskScreen";
 import Profile from "~/screens/User/Profile";
 import ProfileEdit from "~/screens/User/ProfileEdit";
 import ResetPassword from "~/screens/User/ResetPassword";
@@ -18,7 +18,7 @@ const AppRoutes: React.FC = () => {
 	const routeConfigs: RouteConfig[] = [
 		{
 			path: SCREEN_PATHS.TASK,
-			component: Task,
+			component: TasksScreen,
 			isPrivate: true,
 			layout: PrivateLayout,
 		},
