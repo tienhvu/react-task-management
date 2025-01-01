@@ -11,7 +11,7 @@ export const CategoryTable = () => {
 	const { categories } = useSelector((state: RootState) => state.category);
 	const { watch, setValue } = useFormContext();
 
-	const selectedCategories = watch("categories") || [];
+	const selectedCategories = watch("categories") ?? [];
 
 	const filteredCategories = categories.filter((cat) =>
 		cat.name.toLowerCase().includes(searchTerm.toLowerCase()),

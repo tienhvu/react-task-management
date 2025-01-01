@@ -17,10 +17,12 @@ export const CategorySelect = () => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 	const { setValue, control } = useFormContext();
+
 	const selectedCategories = useWatch({
 		control: control,
 		name: "categories",
 	}) as Category[];
+
 	const filteredCategories = useMemo(
 		() =>
 			categories.filter(

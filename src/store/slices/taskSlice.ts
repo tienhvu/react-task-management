@@ -106,7 +106,7 @@ const taskSlice = createSlice({
 		clearTaskError: (state) => {
 			state.error = null;
 		},
-		setIsEditingTask: (state, action) => {
+		setIsEditingTask: (state, action: { payload: boolean }) => {
 			state.isEditingTask = action.payload;
 		},
 	},

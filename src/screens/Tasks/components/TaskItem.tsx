@@ -17,12 +17,13 @@ export const TaskItem: React.FC<Props> = ({ task }) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 	const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+
 	const dispatch = useDispatch<AppDispatch>();
 	const handleRowClick = (e: React.MouseEvent) => {
 		const isActionColumn = (e.target as HTMLElement).closest("td:last-child");
 		if (!isActionColumn) {
 			setIsEditing(true);
-			dispatch(setIsEditingTask(task.id));
+			dispatch(setIsEditingTask(true));
 		}
 	};
 
